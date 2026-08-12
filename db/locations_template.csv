@@ -1,0 +1,39 @@
+location_id,name,area,location_type,x_coord,y_coord
+L001,Balme Library,Legon,Library,5.65,0.19
+L002,Computer Science Department,Legon,Academic,5.651,0.188
+L003,UG Hospital,Legon,Health,5.655,0.185
+L004,University of Ghana Medical Centre (UGMC),Legon,Health,5.632,0.186
+L005,Noguchi Memorial Institute for Medical Research (NMIMR),Legon,Research,5.634,0.183
+L006,School of Public Health,Legon,Academic,5.637,0.183
+L007,The Registry,Legon,Administrative,5.65,0.195
+L008,Office of the Dean of Student Affairs,Legon,Administrative,5.651,0.195
+L009,Academic Quality Assurance Unit (Jones Quartey Building),Legon,Administrative,5.652,0.182
+L010,University of Ghana Post Office,Legon,Administrative,5.651,0.188
+L011,Legon Hall,Legon,Hostel,5.65,0.188
+L012,Commonwealth Hall,Legon,Hostel,5.651,0.191
+L013,Volta Hall,Legon,Hostel,5.65,0.19
+L014,Akuafo Hall,Legon,Hostel,5.65,0.186
+L015,Akuafo Hall Annex,Legon,Hostel,5.647,0.185
+L016,Mensah Sarbah Hall,Legon,Hostel,5.645,0.186
+L017,Mensah Sarbah Annex,Legon,Hostel,5.645,0.186
+L018,Legon Hall Annex,Legon,Hostel,5.65,0.188
+L019,Vikings Hostel,Legon,Hostel,5.644,0.186
+L020,Valco Trust Hostel,Legon,Hostel,5.644,0.187
+L021,Old Pentagon Blocks,Legon,Hostel,5.657,0.181
+L022,Pent Hostel Block A,Legon,Hostel,5.657,0.182
+L023,Pent Hostel Block B,Legon,Hostel,5.657,0.182
+L024,Pent Hostel Block C,Legon,Hostel,5.657,0.182
+L025,Evandy Hostel,Legon,Hostel,5.663,0.182
+L026,Bani Hostel,Legon,Hostel,5.652,0.19
+L027,TF Hostel,Legon,Hostel,5.666,0.182
+L028,Jubilee Hall,Legon,Hostel,5.64,0.186
+L029,International Student Hostel,Legon,Hostel,5.64,0.185
+L030,Dr. Hilla Limann Hall,Legon,Hostel,5.637,0.185
+L031,Alexander Kwapong Hall,Legon,Hostel,5.637,0.186
+L032,Elizabeth Sey Hall,Legon,Hostel,5.636,0.188
+L033,Jean Nelson Akah Hall,Legon,Hostel,5.635,0.188
+L034,Central Cafeteria,Legon,Recreational,5.647,0.187
+L035,Sports Complex,Legon,Recreational,5.639,0.18
+L036,University Banking Square,Legon,Banking,5.643,0.186
+L037,ECOWAS Coastal & Marine Resources Management Centre,Legon,Research,5.653,0.184
+L038,Ghana-Korea Information Access Centre,Legon,Academic,5.652,0.188

@@ -1,3 +1,5 @@
+package servicehub.ds;
+
 public class Map {
 
     private MapEntry root;

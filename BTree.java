@@ -1,6 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Custom B-Tree implementation with minimum degree T = 2 (Order 3).
  * Core B-Tree storage and logic is built from scratch without using Java Collections.
@@ -12,8 +9,8 @@ public class BTree {
     private static final int MAX_CHILDREN = 2 * T; // 4
 
     private BTreeNode root;
-    private final List<String> splitTrace;
-    private final List<String> searchTrace;
+    private final SimpleList<String> splitTrace;
+    private final SimpleList<String> searchTrace;
 
     public static class BTreeNode {
         public int[] keys;
@@ -45,19 +42,19 @@ public class BTree {
 
     public BTree() {
         this.root = new BTreeNode(true);
-        this.splitTrace = new ArrayList<>();
-        this.searchTrace = new ArrayList<>();
+        this.splitTrace = new SimpleList<>();
+        this.searchTrace = new SimpleList<>();
     }
 
     public BTreeNode getRoot() {
         return root;
     }
 
-    public List<String> getSplitTrace() {
+    public SimpleList<String> getSplitTrace() {
         return splitTrace;
     }
 
-    public List<String> getSearchTrace() {
+    public SimpleList<String> getSearchTrace() {
         return searchTrace;
     }
 

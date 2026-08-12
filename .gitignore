@@ -2,3 +2,4 @@ data/
 data/*
 target/
 db/*.db
+*.class

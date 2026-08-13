@@ -1,14 +1,11 @@
 package servicehub;
 
+import java.io.*;
 import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.io.FileWriter;
 
 
 public class CsvSeeder {
@@ -59,7 +56,7 @@ public class CsvSeeder {
         if (!Files.exists(Paths.get(path))) return;
         String sql = "INSERT OR REPLACE INTO roads(road_id, from_location_id, to_location_id, distance_km, travel_time_min, condition_weight) VALUES(?,?,?,?,?,?)";
         try (BufferedReader br = new BufferedReader(new FileReader(path));
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
             String line = br.readLine();
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(",");

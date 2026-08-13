@@ -11,14 +11,14 @@ class MyArrayListTest {
 
     @Test
     void startsEmpty() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         assertTrue(list.isEmpty());
         assertEquals(0, list.size());
     }
 
     @Test
     void addAppendsAndGrowsPastInitialCapacity() {
-        MyArrayList<Integer> list = new MyArrayList<>(2);
+        ArrayList<Integer> list = new ArrayList<>(2);
         for (int i = 0; i < 100; i++) {
             list.add(i);
         }
@@ -30,7 +30,7 @@ class MyArrayListTest {
 
     @Test
     void addAtIndexInsertsAndShifts() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add("a");
         list.add("c");
         list.add(1, "b");
@@ -42,7 +42,7 @@ class MyArrayListTest {
 
     @Test
     void addAtIndexOutOfBoundsThrows() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add("a");
         assertThrows(IndexOutOfBoundsException.class, () -> list.add(2, "x"));
         assertThrows(IndexOutOfBoundsException.class, () -> list.add(-1, "x"));
@@ -50,7 +50,7 @@ class MyArrayListTest {
 
     @Test
     void getOutOfBoundsThrows() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add("a");
         assertThrows(IndexOutOfBoundsException.class, () -> list.get(1));
         assertThrows(IndexOutOfBoundsException.class, () -> list.get(-1));
@@ -58,7 +58,7 @@ class MyArrayListTest {
 
     @Test
     void setReplacesAndReturnsOldValue() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add("old");
         String previous = list.set(0, "new");
         assertEquals("old", previous);
@@ -67,7 +67,7 @@ class MyArrayListTest {
 
     @Test
     void removeByIndexShiftsAndShrinks() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add("a");
         list.add("b");
         list.add("c");
@@ -79,7 +79,7 @@ class MyArrayListTest {
 
     @Test
     void removeByValueRemovesFirstOccurrence() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add("a");
         list.add("b");
         list.add("a");
@@ -93,7 +93,7 @@ class MyArrayListTest {
 
     @Test
     void supportsNullElements() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add(null);
         list.add("x");
         assertTrue(list.contains(null));
@@ -103,7 +103,7 @@ class MyArrayListTest {
 
     @Test
     void containsAndIndexOf() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add("one");
         list.add("two");
         assertTrue(list.contains("two"));
@@ -114,7 +114,7 @@ class MyArrayListTest {
 
     @Test
     void clearEmptiesTheList() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add("a");
         list.add("b");
         list.clear();
@@ -125,7 +125,7 @@ class MyArrayListTest {
 
     @Test
     void toArrayReturnsSnapshotInOrder() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add("a");
         list.add("b");
         Object[] arr = list.toArray();
@@ -138,7 +138,7 @@ class MyArrayListTest {
 
     @Test
     void toStringRendersContents() {
-        MyArrayList<String> list = new MyArrayList<>();
+        ArrayList<String> list = new ArrayList<>();
         list.add("a");
         list.add("b");
         assertEquals("[a, b]", list.toString());
@@ -146,12 +146,12 @@ class MyArrayListTest {
 
     @Test
     void invalidCapacityRejected() {
-        assertThrows(IllegalArgumentException.class, () -> new MyArrayList<>(-1));
+        assertThrows(IllegalArgumentException.class, () -> new ArrayList<>(-1));
     }
 
     @Test
     void zeroCapacityListStillGrows() {
-        MyArrayList<String> list = new MyArrayList<>(0);
+        ArrayList<String> list = new ArrayList<>(0);
         list.add("a");
         assertEquals(1, list.size());
         assertEquals("a", list.get(0));

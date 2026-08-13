@@ -7,18 +7,18 @@ package servicehub.ds;
  *
  * @param <T> the type of elements held in this list
  */
-public class MyArrayList<T> {
+public class ArrayList<T> {
 
     private static final int DEFAULT_CAPACITY = 10;
 
     private Object[] data;
     private int size;
 
-    public MyArrayList() {
+    public ArrayList() {
         this(DEFAULT_CAPACITY);
     }
 
-    public MyArrayList(int initialCapacity) {
+    public ArrayList(int initialCapacity) {
         if (initialCapacity < 0) {
             throw new IllegalArgumentException("Initial capacity must not be negative");
         }

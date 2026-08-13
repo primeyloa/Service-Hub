@@ -1,11 +1,11 @@
 package servicehub.ds;
 
-public class Set {
+public class Set<T> {
 
-    private HashTable table;
+    private HashTable<String, String> table;
 
     public Set() {
-        table = new HashTable();
+        table = new HashTable<>();
     }
 
     public void add(int requestID) {

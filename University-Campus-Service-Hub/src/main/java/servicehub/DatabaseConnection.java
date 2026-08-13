@@ -1,3 +1,5 @@
+// To be deprecated
+
 package servicehub;
 
 import java.sql.Connection;
@@ -14,7 +16,7 @@ public class DatabaseConnection {
     }
 
     public static DatabaseConnection forDefaultDb() {
-        return new DatabaseConnection("jdbc:sqlite:../db/service_hub.db");
+        return new DatabaseConnection("jdbc:sqlite:../db/schema.sql");
     }
 
     public Connection open() throws SQLException {
@@ -22,7 +24,8 @@ public class DatabaseConnection {
     }
 
     public void initializeSchema() throws SQLException {
-        try (Connection conn = open(); Statement stmt = conn.createStatement()) {
+        try (Connection conn = open(); 
+        Statement stmt = conn.createStatement()) {
             stmt.execute("CREATE TABLE IF NOT EXISTS services ("
                     + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                     + "name TEXT NOT NULL,"

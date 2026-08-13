@@ -1,9 +1,9 @@
 package servicehub.ds;
 
-public class HashNode {
+public class HashNode<T> {
 
     int requestID;
-    HashNode next;
+    HashNode<T> next;
 
     public HashNode(int requestID) {
         this.requestID = requestID;

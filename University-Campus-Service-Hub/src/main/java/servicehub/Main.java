@@ -10,5 +10,7 @@ public class Main {
         db.initializeSchema();
 
         System.out.println("✓ Database connected and schema initialized");
+
+        
     }
 }

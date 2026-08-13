@@ -1,10 +1,10 @@
 package servicehub.ds;
 
-public class Node {
+public class Node <T> {
 
     int requestID;
-    Node left;
-    Node right;
+    Node<T> left;
+    Node<T> right;
 
     public Node(int requestID) {
         this.requestID = requestID;

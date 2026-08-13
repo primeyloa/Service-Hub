@@ -1,11 +1,11 @@
 package servicehub.ds;
 
-public class HashTable {
+public class HashTable<K, V> {
 
     // Team's required hash table size
     private static final int DEFAULT_SIZE = 919;
 
-    private HashNode[] table;
+    private HashNode<K>[] table;
     private int size;
 
     // Statistics
@@ -35,7 +35,7 @@ public class HashTable {
 
         int index = hash(requestID);
 
-        HashNode newNode = new HashNode(requestID);
+        HashNode<K> newNode = new HashNode<K>(requestID);
 
         if (table[index] == null) {
             table[index] = newNode;
@@ -46,7 +46,7 @@ public class HashTable {
         // Collision detected
         collisionCount++;
 
-        HashNode current = table[index];
+        HashNode<K> current = table[index];
 
         while (current.next != null) {
 
@@ -68,7 +68,7 @@ public class HashTable {
 
         int index = hash(requestID);
 
-        HashNode current = table[index];
+        HashNode<K> current = table[index];
 
         while (current != null) {
 
@@ -91,8 +91,8 @@ public class HashTable {
 
         int index = hash(requestID);
 
-        HashNode current = table[index];
-        HashNode previous = null;
+        HashNode<K> current = table[index];
+        HashNode<K> previous = null;
 
         while (current != null) {
 
@@ -121,7 +121,7 @@ public class HashTable {
 
             System.out.print("Bucket " + i + " -> ");
 
-            HashNode current = table[i];
+            HashNode<K> current = table[i];
 
             while (current != null) {
                 System.out.print(current + " -> ");

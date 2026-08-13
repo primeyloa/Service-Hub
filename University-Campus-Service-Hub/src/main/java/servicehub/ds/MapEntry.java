@@ -1,12 +1,12 @@
 package servicehub.ds;
 
 
-public class MapEntry {
+public class MapEntry<T> {
 
     int requestID;
     int resourceID;
-    MapEntry left;
-    MapEntry right;
+    MapEntry<T> left;
+    MapEntry<T> right;
 
     public MapEntry(int requestID, int resourceID) {
         this.requestID = requestID;

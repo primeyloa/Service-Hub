@@ -1,8 +1,8 @@
 package servicehub.ds;
 
-public class Map {
+public class Map <K, V> {
 
-    private MapEntry root;
+    private MapEntry<K> root;
     private int size;
 
     public Map() {
@@ -12,13 +12,13 @@ public class Map {
 
     // Put — insert new pair, or update resourceID if requestID already exists
     public void put(int requestID, int resourceID) {
-        MapEntry newEntry = new MapEntry(requestID, resourceID);
+        MapEntry<K> newEntry = new MapEntry<K>(requestID, resourceID);
         if (root == null) {
             root = newEntry;
             size++;
             return;
         }
-        MapEntry current = root;
+        MapEntry <K> current = root;
         while (true) {
             if (requestID == current.requestID) {
                 current.resourceID = resourceID; // update, not a duplicate insert
@@ -44,7 +44,7 @@ public class Map {
 
     // Get — returns the assigned resourceID
     public int get(int requestID) {
-        MapEntry current = root;
+        MapEntry<K> current = root;
         while (current != null) {
             if (requestID == current.requestID)
                 return current.resourceID;
@@ -55,7 +55,7 @@ public class Map {
 
     // ContainsKey — existence check without the exception, same walk as BinarySearchTree.search
     public boolean containsKey(int requestID) {
-        MapEntry current = root;
+        MapEntry<K> current = root;
         while (current != null) {
             if (requestID == current.requestID)
                 return true;
@@ -69,7 +69,7 @@ public class Map {
         root = removeRecursive(root, requestID);
     }
 
-    private MapEntry removeRecursive(MapEntry node, int requestID) {
+    private MapEntry<K> removeRecursive(MapEntry<K> node, int requestID) {
         if (node == null)
             return null;
         if (requestID < node.requestID) {
@@ -84,7 +84,7 @@ public class Map {
                 return node.right;
             if (node.right == null)
                 return node.left;
-            MapEntry successor = findMin(node.right);
+            MapEntry<K> successor = findMin(node.right);
             node.requestID = successor.requestID;
             node.resourceID = successor.resourceID;
             node.right = removeRecursive(node.right, successor.requestID);
@@ -93,7 +93,7 @@ public class Map {
         return node;
     }
 
-    private MapEntry findMin(MapEntry node) {
+    private MapEntry<K> findMin(MapEntry<K> node) {
         while (node.left != null)
             node = node.left;
         return node;
@@ -106,7 +106,7 @@ public class Map {
         System.out.println();
     }
 
-    private void inorder(MapEntry node) {
+    private void inorder(MapEntry<K> node) {
         if (node != null) {
             inorder(node.left);
             System.out.print(node + "  ");

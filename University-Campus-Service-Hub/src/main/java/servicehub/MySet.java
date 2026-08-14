@@ -1,15 +1,6 @@
 package ds;
 
-/**
- * Reference / placeholder Set ADT.
- *
- * REPLACE THIS FILE with your own Set implementation, keeping the class
- * name/package/method signatures the same (or update
- * SetMapCorrectnessTest.java to match yours).
- *
- * Assumed policy: add(null) / remove(null) / contains(null) throw
- * IllegalArgumentException. Adding a value already present is a no-op.
- */
+
 public class MySet<T> {
 
     private final MyMap<T, Boolean> map = new MyMap<>();

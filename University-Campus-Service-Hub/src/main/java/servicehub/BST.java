@@ -1,21 +1,8 @@
 package ds;
 
-import java.util.ArrayList;
-import java.util.List;
+import servicehub.ds.Graph;
 
-/**
- * Reference / placeholder Binary Search Tree.
- *
- * REPLACE THIS FILE with your own BST implementation, as long as the
- * class name, package, and method signatures below stay the same
- * (or you update BSTCorrectnessTest.java to match your real signatures).
- *
- * Assumed policy (adjust the test file if yours differs):
- *  - insert(null) throws IllegalArgumentException
- *  - inserting a duplicate value is a no-op (size does not change)
- *  - delete(null) throws IllegalArgumentException
- *  - deleting a value not present is a no-op (no exception)
- */
+
 public class BST<T extends Comparable<T>> {
 
     private static class Node<T> {
@@ -73,8 +60,7 @@ public class BST<T extends Comparable<T>> {
             Node<T> successor = node.right;
             while (successor.left != null) successor = successor.left;
             node.key = successor.key;
-            // successor has no left child, so this recursive call hits a
-            // single-child/no-child case above and decrements size exactly once
+
             node.right = delete(node.right, successor.key);
         }
         return node;
@@ -91,7 +77,7 @@ public class BST<T extends Comparable<T>> {
         return 1 + Math.max(height(node.left), height(node.right));
     }
 
-    /** In-order traversal; used by tests to confirm sortedness. */
+
     public List<T> inorder() {
         List<T> out = new ArrayList<>();
         inorder(root, out);

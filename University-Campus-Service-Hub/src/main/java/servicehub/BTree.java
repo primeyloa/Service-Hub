@@ -1,27 +1,11 @@
 package ds;
 
-import java.util.ArrayList;
-import java.util.List;
+import servicehub.ds.Graph;
 
-/**
- * Reference / placeholder B-Tree (CLRS-style, minimum degree t).
- *
- * REPLACE THIS FILE with your own B-Tree implementation, keeping the class
- * name/package/method signatures the same (or update
- * BTreeCorrectnessTest.java to match yours).
- *
- * A node has between t-1 and 2t-1 keys (except the root, which may have
- * between 1 and 2t-1 keys, or 0 keys only when the whole tree is empty).
- *
- * Assumed policy:
- *  - constructing with t < 2 throws IllegalArgumentException (t=2 is the
- *    smallest useful degree -- a 2-3-4 tree)
- *  - insert(null) / delete(null) / search(null) throw IllegalArgumentException
- *  - duplicate insert is a no-op (size unchanged)
- */
+/
 public class BTree<T extends Comparable<T>> {
 
-    private final int t; // minimum degree
+    private final int t;
     private Node root;
     private int size = 0;
 
@@ -39,7 +23,7 @@ public class BTree<T extends Comparable<T>> {
         this.root = new Node();
     }
 
-    // ---------- public API ----------
+
 
     public void insert(T value) {
         if (value == null) throw new IllegalArgumentException("value must not be null");
@@ -64,7 +48,7 @@ public class BTree<T extends Comparable<T>> {
         return search(root, value) != null;
     }
 
-    /** Alias for contains(), since some assignments name it search(). */
+
     public boolean search(T value) {
         return contains(value);
     }
@@ -89,7 +73,7 @@ public class BTree<T extends Comparable<T>> {
         return out;
     }
 
-    // ---------- internals ----------
+
 
     private Node search(Node node, T value) {
         int i = 0;
@@ -107,7 +91,7 @@ public class BTree<T extends Comparable<T>> {
         if (!node.leaf) inorder(node.children.get(node.keys.size()), out);
     }
 
-    /** Splits the full child at index i of (non-full) parent x. */
+
     private void splitChild(Node x, int i) {
         Node y = x.children.get(i);
         Node z = new Node();
@@ -169,13 +153,13 @@ public class BTree<T extends Comparable<T>> {
             }
         } else {
             if (node.leaf) {
-                return; // not found (shouldn't happen; contains() was checked first)
+                return;
             }
             boolean isLastChild = (idx == node.keys.size());
             Node child = node.children.get(idx);
             if (child.keys.size() < t) {
                 fill(node, idx);
-                // fill() may have merged child into a neighbour and shifted indices
+
                 if (isLastChild && idx > node.keys.size()) {
                     deleteFromNode(node.children.get(idx - 1), value);
                 } else {
@@ -216,7 +200,7 @@ public class BTree<T extends Comparable<T>> {
         return node.keys.get(0);
     }
 
-    /** Ensures node.children.get(idx) has at least t keys before descending. */
+
     private void fill(Node node, int idx) {
         if (idx != 0 && node.children.get(idx - 1).keys.size() >= t) {
             borrowFromPrev(node, idx);
@@ -253,7 +237,7 @@ public class BTree<T extends Comparable<T>> {
         node.keys.set(idx, sibling.keys.remove(0));
     }
 
-    /** Merges node.children.get(idx+1) and the key at node.keys.get(idx) into node.children.get(idx). */
+
     private void merge(Node node, int idx) {
         Node child = node.children.get(idx);
         Node sibling = node.children.get(idx + 1);

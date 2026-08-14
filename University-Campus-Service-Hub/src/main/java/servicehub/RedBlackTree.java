@@ -3,23 +3,7 @@ package ds;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Reference / placeholder Red-Black Tree (CLRS-style, with a sentinel NIL leaf).
- *
- * REPLACE THIS FILE with your own RB-Tree implementation, keeping the class
- * name/package/method signatures the same (or update
- * RedBlackTreeCorrectnessTest.java to match yours).
- *
- * Node fields are named "key", "left", "right", "parent", "red" -- the
- * reflection-based RBInvariantChecker looks for fields with these (or a few
- * common alternative) names, so it can validate YOUR tree too, not just
- * this reference one. See util/RBInvariantChecker.java if you need to add
- * your own field names to its candidate list.
- *
- * Assumed policy:
- *  - insert(null) / delete(null) / contains(null) throw IllegalArgumentException
- *  - duplicate insert is a no-op (size unchanged)
- */
+
 public class RedBlackTree<T extends Comparable<T>> {
 
     static final boolean RED = true;
@@ -48,7 +32,7 @@ public class RedBlackTree<T extends Comparable<T>> {
         NIL.parent = NIL;
     }
 
-    // ---------- public API ----------
+
 
     public void insert(T value) {
         if (value == null) throw new IllegalArgumentException("value must not be null");
@@ -92,12 +76,11 @@ public class RedBlackTree<T extends Comparable<T>> {
         return out;
     }
 
-    // Exposed only so tooling (e.g. the invariant checker) can walk the tree
-    // if reflection-based field discovery ever fails; not required for use.
+
     Node<T> root() { return root; }
     Node<T> nil() { return NIL; }
 
-    // ---------- internals ----------
+
 
     private Node<T> find(T value) {
         Node<T> x = root;

@@ -1,20 +1,7 @@
 package ds;
+import servicehub.ds.Graph;
 
-import java.util.ArrayList;
-import java.util.List;
 
-/**
- * Reference / placeholder Hash Table (separate chaining, resizes on load factor).
- *
- * REPLACE THIS FILE with your own hash table implementation, keeping the
- * class name/package/method signatures the same (or update
- * HashTableCorrectnessTest.java to match yours).
- *
- * Assumed policy:
- *  - put(null, v) / get(null) / remove(null) / containsKey(null) throw
- *    IllegalArgumentException (null keys are not allowed)
- *  - put on an existing key overwrites the value and does not change size
- */
 public class HashTable<K, V> {
 
     private static final int INITIAL_CAPACITY = 16;

@@ -5,7 +5,7 @@ public class Main {
         System.out.println("=== University Campus Service Hub ===\n");
 
 
-        // Initialize database connection
+
         DatabaseConnection db = DatabaseConnection.forDefaultDb();
         db.initializeSchema();
 

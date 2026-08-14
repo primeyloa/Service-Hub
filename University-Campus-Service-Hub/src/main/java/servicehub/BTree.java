@@ -2,7 +2,6 @@ package ds;
 
 import servicehub.ds.Graph;
 
-/
 public class BTree<T extends Comparable<T>> {
 
     private final int t;

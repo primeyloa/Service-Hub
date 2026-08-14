@@ -1,6 +1,6 @@
 package servicehub.ds;
 
-public class PriorityQueue {
+public class PriorityQueue<T> {
     private int[] heap;
     private int size;
     private int capacity;

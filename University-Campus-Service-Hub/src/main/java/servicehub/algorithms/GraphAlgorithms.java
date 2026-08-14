@@ -6,7 +6,7 @@ public class GraphAlgorithms {
 
     // Dijkstra implementation using distance map and greedy selection
     public static Map<String, Double> dijkstra(Graph graph, String startVertex) {
-        Map<String, Double> distances = new HashMap<>();
+        Map<String, Double> distances = new HashMap<String, Double>();
         DynamicArray<String> vertices = graph.getVertices();
         for (int i = 0; i < vertices.size(); i++) {
             distances.put(vertices.get(i), Double.MAX_VALUE);

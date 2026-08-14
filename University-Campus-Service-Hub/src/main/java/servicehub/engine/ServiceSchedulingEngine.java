@@ -10,12 +10,12 @@ public class ServiceSchedulingEngine {
     public ServiceSchedulingEngine(ArrayList<ServiceRequest> requests) {
         this.priorityQueue = new PriorityQueue<>(requests.size() + 10);
         for (ServiceRequest req : requests) {
-            priorityQueue.insert(req, req.getUrgency());
+            priorityQueue.insert(reqID, reqID.getUrgency());
         }
     }
 
     public ServiceRequest dispatchNext() {
-        return priorityQueue.extractMax();
+        return priorityQueue.peek();
     }
 
     public boolean hasPendingDispatches() {

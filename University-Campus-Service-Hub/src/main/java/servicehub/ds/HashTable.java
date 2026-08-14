@@ -1,156 +1,91 @@
-public class HashTable {
+package servicehub.ds;
+import servicehub.ds.Graph;
 
-    // Team's required hash table size
-    private static final int DEFAULT_SIZE = 919;
 
-    private HashNode[] table;
-    private int size;
+public class HashTable<K, V> {
 
-    // Statistics
-    private int elementCount;
-    private int collisionCount;
+    private static final int INITIAL_CAPACITY = 16;
+    private static final double LOAD_FACTOR_THRESHOLD = 0.75;
 
-    // Default constructor
-    public HashTable() {
-        this(DEFAULT_SIZE);
+    private static class Entry<K, V> {
+        final K key;
+        V value;
+        Entry(K key, V value) { this.key = key; this.value = value; }
     }
 
-    // Custom constructor
-    public HashTable(int size) {
-        this.size = size;
-        table = new HashNode[size];
-        elementCount = 0;
-        collisionCount = 0;
+    @SuppressWarnings("unchecked")
+    private List<Entry<K, V>>[] buckets = new List[INITIAL_CAPACITY];
+    private int size = 0;
+
+    private int bucketIndex(K key, int capacity) {
+        int h = key.hashCode();
+        h ^= (h >>> 16);
+        return Math.floorMod(h, capacity);
     }
 
-    // Hash Function
-    private int hash(int requestID) {
-        return Math.abs(requestID) % size;
-    }
-
-    // Insert
-    public void insert(int requestID) {
-
-        int index = hash(requestID);
-
-        HashNode newNode = new HashNode(requestID);
-
-        if (table[index] == null) {
-            table[index] = newNode;
-            elementCount++;
-            return;
+    public void put(K key, V value) {
+        if (key == null) throw new IllegalArgumentException("key must not be null");
+        int idx = bucketIndex(key, buckets.length);
+        if (buckets[idx] == null) buckets[idx] = new ArrayList<>();
+        for (Entry<K, V> e : buckets[idx]) {
+            if (e.key.equals(key)) {
+                e.value = value;
+                return;
+            }
         }
-
-        // Collision detected
-        collisionCount++;
-
-        HashNode current = table[index];
-
-        while (current.next != null) {
-
-            if (current.requestID == requestID)
-                return; // Duplicate not allowed
-
-            current = current.next;
-        }
-
-        if (current.requestID == requestID)
-            return;
-
-        current.next = newNode;
-        elementCount++;
+        buckets[idx].add(new Entry<>(key, value));
+        size++;
+        if ((double) size / buckets.length > LOAD_FACTOR_THRESHOLD) resize();
     }
 
-    // Search
-    public boolean search(int requestID) {
-
-        int index = hash(requestID);
-
-        HashNode current = table[index];
-
-        while (current != null) {
-
-            if (current.requestID == requestID)
-                return true;
-
-            current = current.next;
+    public V get(K key) {
+        if (key == null) throw new IllegalArgumentException("key must not be null");
+        int idx = bucketIndex(key, buckets.length);
+        if (buckets[idx] == null) return null;
+        for (Entry<K, V> e : buckets[idx]) {
+            if (e.key.equals(key)) return e.value;
         }
+        return null;
+    }
 
+    public boolean containsKey(K key) {
+        if (key == null) throw new IllegalArgumentException("key must not be null");
+        int idx = bucketIndex(key, buckets.length);
+        if (buckets[idx] == null) return false;
+        for (Entry<K, V> e : buckets[idx]) {
+            if (e.key.equals(key)) return true;
+        }
         return false;
     }
 
-    // Contains (Wrapper for search)
-    public boolean contains(int requestID) {
-        return search(requestID);
+    public void remove(K key) {
+        if (key == null) throw new IllegalArgumentException("key must not be null");
+        int idx = bucketIndex(key, buckets.length);
+        if (buckets[idx] == null) return;
+        buckets[idx].removeIf(e -> {
+            boolean match = e.key.equals(key);
+            if (match) size--;
+            return match;
+        });
     }
 
-    // Delete
-    public void delete(int requestID) {
+    public int size() { return size; }
 
-        int index = hash(requestID);
+    public boolean isEmpty() { return size == 0; }
 
-        HashNode current = table[index];
-        HashNode previous = null;
-
-        while (current != null) {
-
-            if (current.requestID == requestID) {
-
-                if (previous == null)
-                    table[index] = current.next;
-                else
-                    previous.next = current.next;
-
-                elementCount--;
-                return;
+    @SuppressWarnings("unchecked")
+    private void resize() {
+        List<Entry<K, V>>[] old = buckets;
+        buckets = new List[old.length * 2];
+        for (List<Entry<K, V>> bucket : old) {
+            if (bucket == null) continue;
+            for (Entry<K, V> e : bucket) {
+                int idx = bucketIndex(e.key, buckets.length);
+                if (buckets[idx] == null) buckets[idx] = new ArrayList<>();
+                buckets[idx].add(e);
             }
-
-            previous = current;
-            current = current.next;
         }
     }
 
-    // Display Hash Table
-    public void display() {
-
-        System.out.println("\n        HASH TABLE        ");
-
-        for (int i = 0; i < size; i++) {
-
-            System.out.print("Bucket " + i + " -> ");
-
-            HashNode current = table[i];
-
-            while (current != null) {
-                System.out.print(current + " -> ");
-                current = current.next;
-            }
-
-            System.out.println("NULL");
-        }
-
-        System.out.println("   ");
-    }
-
-    // Number of stored elements
-    public int size() {
-        return elementCount;
-    }
-
-    // Current load factor
-    public double getLoadFactor() {
-        return (double) elementCount / size;
-    }
-
-    // Number of collisions encountered
-    public int getCollisionCount() {
-        return collisionCount;
-    }
-
-    // Clear the table
-    public void clear() {
-        table = new HashNode[size];
-        elementCount = 0;
-        collisionCount = 0;
-    }
+    public int bucketCount() { return buckets.length; }
 }

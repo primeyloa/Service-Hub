@@ -7,8 +7,9 @@ package servicehub.ds;
  *
  * @param <T> the type of elements held in this list
  */
-public class ArrayList<T> {
 
+
+public class ArrayList<T> implements Iterable<T> {
     private static final int DEFAULT_CAPACITY = 10;
 
     private Object[] data;
@@ -149,4 +150,31 @@ public class ArrayList<T> {
     private static boolean equalsNullSafe(Object a, Object b) {
         return a == null ? b == null : a.equals(b);
     }
+
+    @Override
+    public Iterator<T> myIterator() {
+        return new ListIterator();
+    }
+    
+    public class ListIterator implements Iterator<T> {
+    private int currentIndex = 0;
+
+    @Override
+    public boolean hasNext() {
+        return currentIndex < size ;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public T next() {
+        if (!hasNext()) {
+            // Manually throwing standard RuntimeException to bypass imports
+            throw new RuntimeException("No more elements available.");
+        }
+        return (T) data[currentIndex++];
+    }
+}
+
+    // Private inner class with direct access to 'elements' and 'size'
+
 }

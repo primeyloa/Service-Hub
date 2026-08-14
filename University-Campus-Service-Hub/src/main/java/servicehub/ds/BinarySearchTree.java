@@ -1,8 +1,8 @@
 package servicehub.ds;
 
-public class BinarySearchTree {
+public class BinarySearchTree<T> {
 
-    private Node root;
+    private Node<T> root;
     private int size;
 
     public BinarySearchTree() {
@@ -13,7 +13,7 @@ public class BinarySearchTree {
     // Insert a request ID
     public void insert(int requestID) {
 
-        Node newNode = new Node(requestID);
+        Node<T> newNode = new Node<T>(requestID);
 
         if (root == null) {
             root = newNode;
@@ -21,7 +21,7 @@ public class BinarySearchTree {
             return;
         }
 
-        Node current = root;
+        Node<T> current = root;
 
         while (true) {
 
@@ -55,7 +55,7 @@ public class BinarySearchTree {
     // Search for a request ID
     public boolean search(int requestID) {
 
-        Node current = root;
+        Node<T> current = root;
 
         while (current != null) {
 
@@ -76,7 +76,7 @@ public class BinarySearchTree {
         root = deleteRecursive(root, requestID);
     }
 
-    private Node deleteRecursive(Node node, int requestID) {
+    private Node<T> deleteRecursive(Node<T> node, int requestID) {
 
         if (node == null)
             return null;
@@ -105,7 +105,7 @@ public class BinarySearchTree {
                 return node.left;
 
             // Two children
-            Node successor = findMin(node.right);
+            Node<T> successor = findMin(node.right);
 
             node.requestID = successor.requestID;
 
@@ -118,7 +118,7 @@ public class BinarySearchTree {
     }
 
     // Find minimum node
-    private Node findMin(Node node) {
+    private Node<T> findMin(Node<T> node) {
 
         while (node.left != null)
             node = node.left;
@@ -134,7 +134,7 @@ public class BinarySearchTree {
         System.out.println();
     }
 
-    private void inorder(Node node) {
+    private void inorder(Node<T> node) {
 
         if (node != null) {
 
@@ -154,7 +154,7 @@ public class BinarySearchTree {
         System.out.println();
     }
 
-    private void preorder(Node node) {
+    private void preorder(Node<T> node) {
 
         if (node != null) {
 
@@ -174,7 +174,7 @@ public class BinarySearchTree {
         System.out.println();
     }
 
-    private void postorder(Node node) {
+    private void postorder(Node<T> node) {
 
         if (node != null) {
 
@@ -201,7 +201,7 @@ public class BinarySearchTree {
         if (root == null)
             throw new IllegalStateException("Tree is empty.");
 
-        Node current = root;
+        Node<T> current = root;
 
         while (current.right != null)
             current = current.right;
@@ -214,7 +214,7 @@ public class BinarySearchTree {
         return height(root);
     }
 
-    private int height(Node node) {
+    private int height(Node<T> node) {
 
         if (node == null)
             return -1;

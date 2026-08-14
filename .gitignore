@@ -2,3 +2,6 @@ data/
 data/*
 target/
 db/*.db
+.vscode
+.github
+.idea

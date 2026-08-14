@@ -3,13 +3,13 @@ package servicehub.engine;
 import servicehub.algorithms.GraphAlgorithms;
 import servicehub.ds.Graph;
 import servicehub.model.Road;
-import java.util.List;
-import java.util.Map;
+import servicehub.ds.ArrayList;
+import servicehub.ds.Map;
 
 public class RoutingEngine {
     private Graph campusGraph;
 
-    public RoutingEngine(List<Road> roads) {
+    public RoutingEngine(ArrayList<Road> roads) {
         campusGraph = new Graph();
         for (Road road : roads) {
             // Apply route penalty team parameter (7.0) if condition weight is high or poor

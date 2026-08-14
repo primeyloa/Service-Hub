@@ -20,7 +20,7 @@ public class HashTable<K, V> {
     // Custom constructor
     public HashTable(int size) {
         this.size = size;
-        table = new HashNode[size];
+        this.table = new HashNode[size];
         elementCount = 0;
         collisionCount = 0;
     }

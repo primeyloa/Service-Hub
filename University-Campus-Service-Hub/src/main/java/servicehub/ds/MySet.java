@@ -1,4 +1,4 @@
-package ds;
+package servicehub.ds;
 
 
 public class MySet<T> {

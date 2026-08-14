@@ -1,4 +1,4 @@
-package ds;
+package servicehub.ds;
 
 import java.util.ArrayList;
 import java.util.List;

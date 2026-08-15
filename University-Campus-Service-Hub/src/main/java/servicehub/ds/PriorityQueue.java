@@ -1,17 +1,38 @@
 package servicehub.ds;
 
+import java.util.Comparator;
+
+/**
+ * A generic Binary Heap Priority Queue implementation.
+ * Supports both custom Comparator and natural Comparable ordering.
+ *
+ * @param <T> element type
+ */
 public class PriorityQueue<T> {
-    private int[] heap;
+    private Object[] heap;
     private int size;
     private int capacity;
+    private final Comparator<T> comparator;
 
-    public PriorityQueue(int initialCapacity) {
+    @SuppressWarnings("unchecked")
+    public PriorityQueue(int initialCapacity, Comparator<T> comparator) {
+        if (initialCapacity <= 0) {
+            initialCapacity = 10;
+        }
         this.capacity = initialCapacity;
         this.size = 0;
-        this.heap = new int[initialCapacity];
+        this.heap = new Object[initialCapacity];
+        this.comparator = comparator;
     }
 
-    // Index helper formulas mapped to a contiguous array
+    public PriorityQueue(int initialCapacity) {
+        this(initialCapacity, null);
+    }
+
+    public PriorityQueue() {
+        this(10, null);
+    }
+
     private int getParentIndex(int childIndex) { return (childIndex - 1) / 2; }
     private int getLeftChildIndex(int parentIndex) { return 2 * parentIndex + 1; }
     private int getRightChildIndex(int parentIndex) { return 2 * parentIndex + 2; }
@@ -20,68 +41,97 @@ public class PriorityQueue<T> {
     private boolean hasLeftChild(int index) { return getLeftChildIndex(index) < size; }
     private boolean hasRightChild(int index) { return getRightChildIndex(index) < size; }
 
-    private int parent(int index) { return heap[getParentIndex(index)]; }
-    private int leftChild(int index) { return heap[getLeftChildIndex(index)]; }
-    private int rightChild(int index) { return heap[getRightChildIndex(index)]; }
+    @SuppressWarnings("unchecked")
+    private T parent(int index) { return (T) heap[getParentIndex(index)]; }
+    @SuppressWarnings("unchecked")
+    private T leftChild(int index) { return (T) heap[getLeftChildIndex(index)]; }
+    @SuppressWarnings("unchecked")
+    private T rightChild(int index) { return (T) heap[getRightChildIndex(index)]; }
 
     private void swap(int indexOne, int indexTwo) {
-        int temp = heap[indexOne];
+        Object temp = heap[indexOne];
         heap[indexOne] = heap[indexTwo];
         heap[indexTwo] = temp;
     }
 
-    private void ensureExtraCapacity() {
-        if (size == capacity) {
-            int newCapacity = capacity * 2;
-            int[] newheap = new int[newCapacity];
-            System.arraycopy(heap, 0, newheap, 0, size);
-            heap = newheap;
+    private void ensureCapacity() {
+        if (size >= capacity) {
+            capacity *= 2;
+            Object[] newHeap = new Object[capacity];
+            System.arraycopy(heap, 0, newHeap, 0, size);
+            heap = newHeap;
         }
     }
 
-    // Look at the highest priority element without removing it
-    public int peek() {
-        if (size == 0) return -1;
-        return heap[0];
+    @SuppressWarnings("unchecked")
+    private int compare(T a, T b) {
+        if (comparator != null) {
+            return comparator.compare(a, b);
+        }
+        return ((Comparable<T>) a).compareTo(b);
     }
 
-    // Add an element to the queue
-    public void enqueue(int item) {
-        ensureExtraCapacity();
-        heap[size] = item; // Put at the very end
+    @SuppressWarnings("unchecked")
+    public T peek() {
+        if (size == 0) return null;
+        return (T) heap[0];
+    }
+
+    public void enqueue(T item) {
+        insert(item);
+    }
+
+    public void insert(T item) {
+        if (item == null) throw new IllegalArgumentException("Cannot insert null into PriorityQueue");
+        ensureCapacity();
+        heap[size] = item;
         size++;
-        siftUp();          // Bubble up to restore heap invariant
+        siftUp();
     }
 
-    // Remove and return the highest priority element
-    public int dequeue() {
-        if (size == 0) return -1;
-        int item = heap[0];
-        heap[0] = heap[size - 1]; // Move last element to the root
+    @SuppressWarnings("unchecked")
+    public T dequeue() {
+        return extract();
+    }
+
+    public T extractMin() {
+        return extract();
+    }
+
+    public T extractMax() {
+        return extract();
+    }
+
+    @SuppressWarnings("unchecked")
+    public T extract() {
+        if (size == 0) return null;
+        T item = (T) heap[0];
+        heap[0] = heap[size - 1];
+        heap[size - 1] = null;
         size--;
-        siftDown();               // Bubble down to restore heap invariant
+        siftDown();
         return item;
     }
 
-    // Restores heap order by moving a new element upwards
+    @SuppressWarnings("unchecked")
     private void siftUp() {
         int index = size - 1;
-        while (hasParent(index) && parent(index) > heap[index]) {
+        while (hasParent(index) && compare((T) heap[index], parent(index)) < 0) {
             swap(getParentIndex(index), index);
             index = getParentIndex(index);
         }
     }
 
-    // Restores heap order by moving an element downwards
+    @SuppressWarnings("unchecked")
     private void siftDown() {
         int index = 0;
         while (hasLeftChild(index)) {
             int smallerChildIndex = getLeftChildIndex(index);
-            if (hasRightChild(index) && rightChild(index) < leftChild(index)) {
+            if (hasRightChild(index) && compare(rightChild(index), leftChild(index)) < 0) {
                 smallerChildIndex = getRightChildIndex(index);
             }
 
-            if (heap[index] < heap[smallerChildIndex]) {
+            if (compare((T) heap[index], (T) heap[smallerChildIndex]) <= 0) {
                 break;
             } else {
                 swap(index, smallerChildIndex);
@@ -92,4 +142,8 @@ public class PriorityQueue<T> {
 
     public int size() { return size; }
     public boolean isEmpty() { return size == 0; }
+    public void clear() {
+        for (int i = 0; i < size; i++) heap[i] = null;
+        size = 0;
+    }
 }

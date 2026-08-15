@@ -1,19 +1,30 @@
 package servicehub.ds;
 
-public class Node <T> {
+/**
+ * Node for Binary Search Tree and tree-based structures.
+ *
+ * @param <K> key type
+ * @param <V> value type
+ */
+public class Node<K, V> {
+    public K key;
+    public V value;
+    public Node<K, V> left;
+    public Node<K, V> right;
 
-    int requestID;
-    Node<T> left;
-    Node<T> right;
-
-    public Node(int requestID) {
-        this.requestID = requestID;
+    public Node(K key, V value) {
+        this.key = key;
+        this.value = value;
         this.left = null;
         this.right = null;
     }
 
+    public Node(K key) {
+        this(key, null);
+    }
+
     @Override
     public String toString() {
-        return String.valueOf(requestID);
+        return value != null ? key + ":" + value : String.valueOf(key);
     }
 }

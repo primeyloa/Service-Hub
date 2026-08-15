@@ -17,7 +17,7 @@ public class HashMap<K, V> {
     private Node<K, V>[] table;
     private int size;
     private int capacity;
-    private float loadFactor =0;
+    private float loadFactor = 0;
 
     private static final int DEFAULT_INITIAL_CAPACITY = 16;
     private static final float DEFAULT_LOAD_FACTOR = 0.75f;
@@ -32,7 +32,7 @@ public class HashMap<K, V> {
     // Secondary hash function to distribute bits evenly
     private int getBucketIndex(K key) {
         if (key == null) return 0;
-        return Math.abs(key.hashCode()) % capacity;
+        return (key.hashCode() & Integer.MAX_VALUE) % capacity;
     }
 
     // Insert or update a key-value pair
@@ -73,6 +73,23 @@ public class HashMap<K, V> {
             head = head.next;
         }
         return null; // Key not found
+    }
+
+    public boolean containsKey(K key) {
+        int index = getBucketIndex(key);
+        Node<K, V> head = table[index];
+        while (head != null) {
+            if ((key == null && head.key == null) || (key != null && key.equals(head.key))) {
+                return true;
+            }
+            head = head.next;
+        }
+        return false;
+    }
+
+    public void clear() {
+        for (int i = 0; i < capacity; i++) table[i] = null;
+        size = 0;
     }
 
     // Remove a key-value pair

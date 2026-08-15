@@ -1,18 +1,22 @@
 package servicehub.model;
 
-
+/**
+ * A service request raised from a department, hall or institution on campus.
+ */
 public class ServiceRequest implements Comparable<ServiceRequest> {
-    private String requestId;
-    private String sourceLocationId;
-    private String destinationLocationId;
-    private String category;
-    private int urgency;
-    private String timeSubmitted;
-    private String deadline;
-    private String status;
+    private final String requestId;
+    private final String sourceLocationId;
+    private final String destinationLocationId;
+    private final String category;
+    private final int urgency;          // 1 (low) .. 5 (critical)
+    private final String timeSubmitted;
+    private final String deadline;
+    private String status;              // NEW, PENDING, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED
     private double cost;
 
-    public ServiceRequest(String requestId, String sourceLocationId, String destinationLocationId, String category, int urgency, String timeSubmitted, String deadline, String status, double cost) {
+    public ServiceRequest(String requestId, String sourceLocationId, String destinationLocationId,
+                          String category, int urgency, String timeSubmitted, String deadline,
+                          String status, double cost) {
         this.requestId = requestId;
         this.sourceLocationId = sourceLocationId;
         this.destinationLocationId = destinationLocationId;
@@ -22,6 +26,17 @@ public class ServiceRequest implements Comparable<ServiceRequest> {
         this.deadline = deadline;
         this.status = status;
         this.cost = cost;
+    }
+
+    public ServiceRequest(String requestId, String sourceLocationId, String destinationLocationId,
+                          String category, int urgency, String timeSubmitted, String deadline, String status) {
+        this(requestId, sourceLocationId, destinationLocationId, category, urgency, timeSubmitted,
+                deadline, status, defaultCost(urgency));
+    }
+
+    /** Team heuristic: base fee plus urgency loading. */
+    public static double defaultCost(int urgency) {
+        return 200.0 + urgency * 100.0;
     }
 
     public String getRequestId() { return requestId; }
@@ -34,15 +49,18 @@ public class ServiceRequest implements Comparable<ServiceRequest> {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public double getCost() { return cost; }
+    public void setCost(double cost) { this.cost = cost; }
 
     @Override
     public int compareTo(ServiceRequest other) {
-        // Higher urgency comes first (Max Heap behavior or descending order)
+        // Higher urgency comes first (max-heap ordering)
         return Integer.compare(other.urgency, this.urgency);
     }
 
     @Override
     public String toString() {
-        return String.format("Request[%s: %s -> %s, Cat: %s, Urgency: %d, Cost: GHS %.2f, Status: %s]", requestId, sourceLocationId, destinationLocationId, category, urgency, cost, status);
+        return String.format("%s: %s -> %s [%s, U%d, GHS%.0f, %s]",
+                requestId, sourceLocationId, destinationLocationId,
+                category, urgency, cost, status);
     }
 }

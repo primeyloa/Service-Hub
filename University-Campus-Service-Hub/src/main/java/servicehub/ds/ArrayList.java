@@ -1,14 +1,14 @@
 package servicehub.ds;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
- * A dynamic array list implementation.
+ * A parameterized dynamic array list implementation.
  * Backed by a plain Object array that grows when full.
  *
  * @param <T> the type of elements held in this list
  */
-
-
 public class ArrayList<T> implements Iterable<T> {
     private static final int DEFAULT_CAPACITY = 10;
 
@@ -152,29 +152,25 @@ public class ArrayList<T> implements Iterable<T> {
     }
 
     @Override
-    public Iterator<T> myIterator() {
+    public Iterator<T> iterator() {
         return new ListIterator();
     }
-    
-    public class ListIterator implements Iterator<T> {
-    private int currentIndex = 0;
 
-    @Override
-    public boolean hasNext() {
-        return currentIndex < size ;
-    }
+    private class ListIterator implements Iterator<T> {
+        private int currentIndex = 0;
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public T next() {
-        if (!hasNext()) {
-            // Manually throwing standard RuntimeException to bypass imports
-            throw new RuntimeException("No more elements available.");
+        @Override
+        public boolean hasNext() {
+            return currentIndex < size;
         }
-        return (T) data[currentIndex++];
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public T next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("No more elements available.");
+            }
+            return (T) data[currentIndex++];
+        }
     }
-}
-
-    // Private inner class with direct access to 'elements' and 'size'
-
 }

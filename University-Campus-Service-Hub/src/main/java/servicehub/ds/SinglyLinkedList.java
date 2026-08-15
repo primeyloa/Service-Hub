@@ -1,12 +1,14 @@
 package servicehub.ds;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
  * A singly linked list implementation.
- * Each node holds one element and a reference to the next node.
  *
- * @param <T> the type of elements held in this list
+ * @param <T> element type
  */
-public class SinglyLinkedList<T> {
+public class SinglyLinkedList<T> implements Iterable<T> {
 
     private static final class Node<T> {
         T data;
@@ -187,6 +189,26 @@ public class SinglyLinkedList<T> {
             current = current.next;
         }
         return result;
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new Iterator<T>() {
+            private Node<T> current = head;
+
+            @Override
+            public boolean hasNext() {
+                return current != null;
+            }
+
+            @Override
+            public T next() {
+                if (!hasNext()) throw new NoSuchElementException("No more elements in SinglyLinkedList");
+                T data = current.data;
+                current = current.next;
+                return data;
+            }
+        };
     }
 
     @Override

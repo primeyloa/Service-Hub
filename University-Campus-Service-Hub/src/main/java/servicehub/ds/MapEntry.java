@@ -1,22 +1,26 @@
 package servicehub.ds;
 
+/**
+ * Entry node for the BST-based Map.
+ *
+ * @param <K> key type
+ * @param <V> value type
+ */
+public class MapEntry<K, V> {
+    public K key;
+    public V value;
+    public MapEntry<K, V> left;
+    public MapEntry<K, V> right;
 
-public class MapEntry<T> {
-
-    int requestID;
-    int resourceID;
-    MapEntry<T> left;
-    MapEntry<T> right;
-
-    public MapEntry(int requestID, int resourceID) {
-        this.requestID = requestID;
-        this.resourceID = resourceID;
+    public MapEntry(K key, V value) {
+        this.key = key;
+        this.value = value;
         this.left = null;
         this.right = null;
     }
 
     @Override
     public String toString() {
-        return requestID + " -> " + resourceID;
+        return key + " -> " + value;
     }
 }

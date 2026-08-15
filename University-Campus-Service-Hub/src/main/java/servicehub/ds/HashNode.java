@@ -1,17 +1,24 @@
 package servicehub.ds;
 
-public class HashNode<T> {
+/**
+ * Node for the chaining hash table. Holds a key/value pair.
+ *
+ * @param <K> key type
+ * @param <V> value type
+ */
+public class HashNode<K, V> {
+    public K key;
+    public V value;
+    public HashNode<K, V> next;
 
-    int requestID;
-    HashNode<T> next;
-
-    public HashNode(int requestID) {
-        this.requestID = requestID;
+    public HashNode(K key, V value) {
+        this.key = key;
+        this.value = value;
         this.next = null;
     }
 
     @Override
     public String toString() {
-        return String.valueOf(requestID);
+        return key + "=" + value;
     }
 }

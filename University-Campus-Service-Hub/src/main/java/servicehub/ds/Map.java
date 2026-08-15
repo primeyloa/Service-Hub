@@ -1,8 +1,14 @@
 package servicehub.ds;
 
-public class Map <K, V> {
+/**
+ * Generic Map implemented on top of a Binary Search Tree (key-value pairs).
+ *
+ * @param <K> key type (must implement Comparable)
+ * @param <V> value type
+ */
+public class Map<K extends Comparable<K>, V> {
 
-    private MapEntry<K> root;
+    private MapEntry<K, V> root;
     private int size;
 
     public Map() {
@@ -10,21 +16,22 @@ public class Map <K, V> {
         size = 0;
     }
 
-    // Put — insert new pair, or update resourceID if requestID already exists
-    public void put(int requestID, int resourceID) {
-        MapEntry<K> newEntry = new MapEntry<K>(requestID, resourceID);
+    public void put(K key, V value) {
+        if (key == null) return;
+        MapEntry<K, V> newEntry = new MapEntry<>(key, value);
         if (root == null) {
             root = newEntry;
             size++;
             return;
         }
-        MapEntry <K> current = root;
+        MapEntry<K, V> current = root;
         while (true) {
-            if (requestID == current.requestID) {
-                current.resourceID = resourceID; // update, not a duplicate insert
+            int cmp = key.compareTo(current.key);
+            if (cmp == 0) {
+                current.value = value; // update existing
                 return;
             }
-            if (requestID < current.requestID) {
+            if (cmp < 0) {
                 if (current.left == null) {
                     current.left = newEntry;
                     size++;
@@ -42,71 +49,73 @@ public class Map <K, V> {
         }
     }
 
-    // Get — returns the assigned resourceID
-    public int get(int requestID) {
-        MapEntry<K> current = root;
+    public V get(K key) {
+        if (key == null) return null;
+        MapEntry<K, V> current = root;
         while (current != null) {
-            if (requestID == current.requestID)
-                return current.resourceID;
-            current = (requestID < current.requestID) ? current.left : current.right;
+            int cmp = key.compareTo(current.key);
+            if (cmp == 0) return current.value;
+            current = cmp < 0 ? current.left : current.right;
         }
-        throw new IllegalArgumentException("No mapping for requestID " + requestID);
+        return null;
     }
 
-    // ContainsKey — existence check without the exception, same walk as BinarySearchTree.search
-    public boolean containsKey(int requestID) {
-        MapEntry<K> current = root;
+    public boolean containsKey(K key) {
+        if (key == null) return false;
+        MapEntry<K, V> current = root;
         while (current != null) {
-            if (requestID == current.requestID)
-                return true;
-            current = (requestID < current.requestID) ? current.left : current.right;
+            int cmp = key.compareTo(current.key);
+            if (cmp == 0) return true;
+            current = cmp < 0 ? current.left : current.right;
         }
         return false;
     }
 
-    // Remove — same three-case logic as BinarySearchTree.delete, carrying resourceID along
-    public void remove(int requestID) {
-        root = removeRecursive(root, requestID);
+    public V remove(K key) {
+        if (key == null) return null;
+        V removed = get(key);
+        root = removeRecursive(root, key);
+        return removed;
     }
 
-    private MapEntry<K> removeRecursive(MapEntry<K> node, int requestID) {
-        if (node == null)
-            return null;
-        if (requestID < node.requestID) {
-            node.left = removeRecursive(node.left, requestID);
-        } else if (requestID > node.requestID) {
-            node.right = removeRecursive(node.right, requestID);
+    private MapEntry<K, V> removeRecursive(MapEntry<K, V> node, K key) {
+        if (node == null) return null;
+        int cmp = key.compareTo(node.key);
+        if (cmp < 0) {
+            node.left = removeRecursive(node.left, key);
+        } else if (cmp > 0) {
+            node.right = removeRecursive(node.right, key);
         } else {
             size--;
-            if (node.left == null && node.right == null)
-                return null;
-            if (node.left == null)
-                return node.right;
-            if (node.right == null)
-                return node.left;
-            MapEntry<K> successor = findMin(node.right);
-            node.requestID = successor.requestID;
-            node.resourceID = successor.resourceID;
-            node.right = removeRecursive(node.right, successor.requestID);
+            if (node.left == null && node.right == null) return null;
+            if (node.left == null) return node.right;
+            if (node.right == null) return node.left;
+            MapEntry<K, V> successor = findMin(node.right);
+            node.key = successor.key;
+            node.value = successor.value;
+            node.right = removeRecursive(node.right, successor.key);
             size++;
         }
         return node;
     }
 
-    private MapEntry<K> findMin(MapEntry<K> node) {
-        while (node.left != null)
-            node = node.left;
+    private MapEntry<K, V> findMin(MapEntry<K, V> node) {
+        while (node.left != null) node = node.left;
         return node;
     }
 
-    // Inorder — pairs listed by ascending requestID
+    public K findMin() {
+        if (root == null) throw new IllegalStateException("Map is empty");
+        return findMin(root).key;
+    }
+
     public void inorder() {
         System.out.print("Map (inorder): ");
         inorder(root);
         System.out.println();
     }
 
-    private void inorder(MapEntry<K> node) {
+    private void inorder(MapEntry<K, V> node) {
         if (node != null) {
             inorder(node.left);
             System.out.print(node + "  ");
@@ -114,16 +123,7 @@ public class Map <K, V> {
         }
     }
 
-    public int size() {
-        return size;
-    }
-
-    public boolean isEmpty() {
-        return root == null;
-    }
-
-    public void clear() {
-        root = null;
-        size = 0;
-    }
+    public int size() { return size; }
+    public boolean isEmpty() { return root == null; }
+    public void clear() { root = null; size = 0; }
 }

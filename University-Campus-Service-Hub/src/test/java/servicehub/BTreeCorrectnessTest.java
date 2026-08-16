@@ -1,7 +1,7 @@
-package correctness;
+package servicehub;
 
-import correctness.util.BTreeInvariantChecker;
-import ds.BTree;
+import servicehub.util.BTreeInvariantChecker;
+import servicehub.ds.BTree;
 import org.junit.jupiter.api.*;
 
 import java.util.*;

@@ -1,6 +1,6 @@
-package correctness;
+package servicehub;
 
-import ds.BST;
+import servicehub.ds.BST;
 import org.junit.jupiter.api.*;
 
 import java.util.*;

@@ -1,7 +1,7 @@
-package correctness;
+package servicehub;
 
-import ds.MyMap;
-import ds.MySet;
+import servicehub.ds.MyMap;
+import servicehub.ds.MySet;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;

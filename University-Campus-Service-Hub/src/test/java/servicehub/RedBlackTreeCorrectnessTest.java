@@ -1,7 +1,7 @@
-package correctness;
+package servicehub;
 
-import correctness.util.RBInvariantChecker;
-import ds.RedBlackTree;
+import servicehub.util.RBInvariantChecker;
+import servicehub.ds.RedBlackTree;
 import org.junit.jupiter.api.*;
 
 import java.util.*;

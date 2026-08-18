@@ -13,7 +13,7 @@ public class UnionFind {
     public UnionFind(int size) {
         if (size < 0) throw new IllegalArgumentException("Size must be non-negative");
         parent = new int[size];
-        rank = new int[size];
+        rank = new int[size]; //zeros are fixed in each index position. evidence in Obsidian
         for (int i = 0; i < size; i++) {
             parent[i] = i;
         }
@@ -38,7 +38,7 @@ public class UnionFind {
             parent[rootJ] = rootI;
         } else {
             parent[rootJ] = rootI;
-            rank[rootI]++;
+            rank[rootI]++; // for that root position that pertains to the item number (representative of the set containing i)
         }
         count--;
     }

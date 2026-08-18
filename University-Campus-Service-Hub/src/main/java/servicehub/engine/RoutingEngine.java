@@ -1,6 +1,7 @@
 package servicehub.engine;
-
-import servicehub.algorithms.GraphAlgorithms;
+import servicehub.ds.*;
+import servicehub.algorithms.*;
+import servicehub.algorithms.GraphAlgorithms.*;
 import servicehub.ds.ArrayList;
 import servicehub.ds.DynamicArray;
 import servicehub.ds.Graph;
@@ -35,11 +36,11 @@ public class RoutingEngine {
         return campusGraph;
     }
 
-    public servicehub.ds.Map<String, Double> findShortestPaths(String startLocation) {
+    public Map<String, Double> findShortestPaths(String startLocation) {
         return GraphAlgorithms.dijkstra(campusGraph, startLocation);
     }
 
-    public GraphAlgorithms.RouteResult findShortestPath(String from, String to) {
+    public RouteResult findShortestPath(String from, String to) {
         return GraphAlgorithms.shortestPath(campusGraph, from, to);
     }
 

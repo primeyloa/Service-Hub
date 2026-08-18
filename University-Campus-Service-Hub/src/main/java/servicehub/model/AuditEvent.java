@@ -14,7 +14,7 @@ public class AuditEvent {
     }
 
     public AuditEvent(String action, String details, String timestamp) {
-        this(-1, action, details, timestamp);
+        this(-1, action, details, timestamp); //constructor chaining, calling the super, (the previous constructor) and delegating the initialization logic to it
     }
 
     public int getEventId() { return eventId; }

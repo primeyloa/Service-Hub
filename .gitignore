@@ -1,3 +1,18 @@
+# Build output
+target/
+**/target/
+
+# Runtime SQLite database (created by the application)
+db/
+**/db/
+
+# Generated benchmark reports
+reports/
+
+# Editors / IDE
+.vscode
+.github
+.idea
 data/
 data/*
 target/

@@ -1,23 +1,25 @@
 package servicehub.ds;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
- * A dynamic array list implementation.
+ * A parameterized dynamic array list implementation.
  * Backed by a plain Object array that grows when full.
  *
  * @param <T> the type of elements held in this list
  */
-public class MyArrayList<T> {
-
+public class ArrayList<T> implements Iterable<T> {
     private static final int DEFAULT_CAPACITY = 10;
 
     private Object[] data;
     private int size;
 
-    public MyArrayList() {
+    public ArrayList() {
         this(DEFAULT_CAPACITY);
     }
 
-    public MyArrayList(int initialCapacity) {
+    public ArrayList(int initialCapacity) {
         if (initialCapacity < 0) {
             throw new IllegalArgumentException("Initial capacity must not be negative");
         }
@@ -147,5 +149,28 @@ public class MyArrayList<T> {
 
     private static boolean equalsNullSafe(Object a, Object b) {
         return a == null ? b == null : a.equals(b);
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new ListIterator();
+    }
+
+    private class ListIterator implements Iterator<T> {
+        private int currentIndex = 0;
+
+        @Override
+        public boolean hasNext() {
+            return currentIndex < size;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public T next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("No more elements available.");
+            }
+            return (T) data[currentIndex++];
+        }
     }
 }

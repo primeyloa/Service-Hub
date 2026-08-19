@@ -13,3 +13,12 @@ reports/
 .vscode
 .github
 .idea
+data/
+data/*
+target/
+db/*.db
+*.class
+
+.vscode
+.idea
+.github

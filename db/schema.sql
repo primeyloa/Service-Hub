@@ -1,163 +1,112 @@
--- ============================================================
 -- CAMPUS SERVICE SCHEMA
 -- DCIT 204/308 Joint DSA Project
--- Engine: PostgreSQL
--- ============================================================
+-- Engine: SQLite
 
--- ------------------------------------------------------------
--- Enum types
--- ------------------------------------------------------------
-CREATE TYPE urgency_level        AS ENUM ('Low', 'Medium', 'High', 'Critical');
-CREATE TYPE request_status       AS ENUM ('Pending', 'Assigned', 'InProgress', 'Completed', 'Cancelled');
-CREATE TYPE location_type        AS ENUM ('hostel', 'lecture_hall', 'lab', 'shuttle_stop', 'admin', 'cafeteria');
-CREATE TYPE resource_type        AS ENUM ('maintenance_technician', 'shuttle_bus', 'lab_assistant', 'security_officer', 'it_support_staff');
-CREATE TYPE availability_status  AS ENUM ('available', 'busy', 'off_duty');
+-- notes:
+-- new column called external_code was added to tables to prevent
+-- confusion with ids from csv such as R001 for resource and road entries
 
--- ------------------------------------------------------------
--- LOCATIONS  =
--- ------------------------------------------------------------
+PRAGMA foreign_keys = ON;
+
+
+-- LOCATIONS
+ 
 CREATE TABLE locations (
-    location_id     SERIAL PRIMARY KEY,
+    location_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    external_code   TEXT NOT NULL UNIQUE,      -- 'L001' location_id in the CSV
     name            TEXT NOT NULL,
     area            TEXT NOT NULL,
-    type            location_type NOT NULL,
-    longitude       DOUBLE PRECISION,
-    latitude        DOUBLE PRECISION,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+    type            TEXT NOT NULL CHECK (type IN (
+                        'Academic','Administrative','Banking','Health',
+                        'Hostel','Library','Recreational','Research'
+                    )),                         
+    latitude        REAL,                       --  x_coord
+    longitude       REAL,                       --  y_coord
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- ------------------------------------------------------------
--- CLIENT
--- ------------------------------------------------------------
-CREATE TABLE client (
-    client_id       SERIAL PRIMARY KEY,
-    first_name      TEXT NOT NULL,
-    last_name       TEXT NOT NULL,
-    phone           TEXT NOT NULL,
-    email           TEXT NOT NULL UNIQUE,
-    location_id     INT REFERENCES locations(location_id),
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- ------------------------------------------------------------
--- SERVICE_TYPE
--- ------------------------------------------------------------
-CREATE TABLE service_type (
-    service_type_id SERIAL PRIMARY KEY,
-    name            TEXT NOT NULL UNIQUE,
-    description     TEXT,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- ------------------------------------------------------------
--- SERVICE_PROVIDER
--- ------------------------------------------------------------
-CREATE TABLE service_provider (
-    provider_id       SERIAL PRIMARY KEY,
-    name              TEXT NOT NULL,
-    description       TEXT,
-    service_type_id   INT NOT NULL REFERENCES service_type(service_type_id),
-    location_id       INT NOT NULL REFERENCES locations(location_id),
-    created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- ------------------------------------------------------------
--- ROUTES  (weighted edges between locations)
--- ------------------------------------------------------------
-CREATE TABLE routes (
-    route_id                SERIAL PRIMARY KEY,
-    from_location_id         INT NOT NULL REFERENCES locations(location_id),
-    to_location_id            INT NOT NULL REFERENCES locations(location_id),
-    distance_km               NUMERIC(6,2) NOT NULL CHECK (distance_km > 0),
-    travel_time_min            NUMERIC(6,2) NOT NULL CHECK (travel_time_min > 0),
-    road_condition_weight       NUMERIC(4,2) NOT NULL DEFAULT 1.0,
+ 
+-- ROADS
+ 
+CREATE TABLE roads (
+    road_id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    external_code           TEXT NOT NULL UNIQUE,     
+    from_location_id        INTEGER NOT NULL REFERENCES locations(location_id),
+    to_location_id          INTEGER NOT NULL REFERENCES locations(location_id),
+    distance_km             REAL NOT NULL CHECK (distance_km > 0),
+    travel_time_min         REAL NOT NULL CHECK (travel_time_min > 0),
+    road_condition_weight   REAL NOT NULL DEFAULT 1.0,  
     CHECK (from_location_id <> to_location_id)
 );
 
--- ------------------------------------------------------------
--- RESOURCES 
--- ------------------------------------------------------------
-CREATE TABLE resources (
-    resource_id           SERIAL PRIMARY KEY,
-    name                   TEXT NOT NULL,
-    type                   resource_type NOT NULL,
-    quantity                INT NOT NULL DEFAULT 0 CHECK (quantity >= 0),
-    home_location           INT NOT NULL REFERENCES locations(location_id),
-    availability_status     availability_status NOT NULL DEFAULT 'available',
-    service_provider_id      INT NOT NULL REFERENCES service_provider(provider_id),
-    created_at                TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at                TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- ------------------------------------------------------------
--- SERVICE_REQUESTS
--- ------------------------------------------------------------
+ 
+-- SERVICE_REQUESTS 
+ 
 CREATE TABLE service_requests (
-    request_id               SERIAL PRIMARY KEY,
-    category                  TEXT NOT NULL,
-    urgency                    urgency_level NOT NULL,
-    time_submitted               TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at                    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    deadline                      TIMESTAMPTZ,
-    status                        request_status NOT NULL DEFAULT 'Pending',
-    priority_weight                NUMERIC(6,3),
-    client_id                      INT NOT NULL REFERENCES client(client_id),
-    source_location_id              INT NOT NULL REFERENCES locations(location_id),
-    destination_location_id          INT REFERENCES locations(location_id),   -- nullable: not all requests have a destination
-    service_provider_id               INT REFERENCES service_provider(provider_id)  -- nullable until assigned
+    request_id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    external_code             TEXT NOT NULL UNIQUE,   
+    source_location_id        INTEGER NOT NULL REFERENCES locations(location_id),
+    destination_location_id   INTEGER REFERENCES locations(location_id),  -- nullable
+    category                  TEXT NOT NULL,          
+    urgency                   INTEGER NOT NULL CHECK (urgency BETWEEN 1 AND 5),  -- 5 = most urgent
+    time_submitted             DATETIME NOT NULL,
+    updated_at                  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deadline                    DATETIME,
+    status                      TEXT NOT NULL DEFAULT 'NEW' CHECK (status IN (
+                                    'NEW','IN_PROGRESS','COMPLETED','CANCELLED'
+                                 )),
+    priority_weight              REAL  
 );
 
--- ------------------------------------------------------------
--- RATING  (traceable to client + request)
--- ------------------------------------------------------------
-CREATE TABLE rating (
-    rating_id            SERIAL PRIMARY KEY,
-    service_provider_id   INT NOT NULL REFERENCES service_provider(provider_id),
-    client_id              INT REFERENCES client(client_id),
-    request_id              INT REFERENCES service_requests(request_id),
-    description              TEXT,
-    rating                    INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
-    created_at                 TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at                 TIMESTAMPTZ NOT NULL DEFAULT now()
+ 
+-- RESOURCES 
+ 
+CREATE TABLE resources (
+    resource_id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    external_code         TEXT NOT NULL UNIQUE,   -- e.g. 'R001'/'V001',
+    type                  TEXT NOT NULL CHECK (type IN ('Rider','Van')), 
+    home_location_id      INTEGER NOT NULL REFERENCES locations(location_id),
+    capacity               INTEGER NOT NULL DEFAULT 1,
+    availability_status     TEXT NOT NULL DEFAULT 'AVAILABLE' CHECK (availability_status IN (
+                               'AVAILABLE','BUSY','MAINTENANCE','OFFLINE'
+                            )),
+    created_at               DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- ------------------------------------------------------------
--- ALGORITHM_RUNS  (performance-experiment log)
--- ------------------------------------------------------------
+ 
+-- ALGORITHM_RUNS  (populated by the empirical benchmarking)
+ 
 CREATE TABLE algorithm_runs (
-    run_id           SERIAL PRIMARY KEY,
+    run_id           INTEGER PRIMARY KEY AUTOINCREMENT,
     algorithm_name   TEXT NOT NULL,
-    input_size       INT NOT NULL,
+    input_size       INTEGER NOT NULL,
     time_ns          BIGINT NOT NULL,
-    memory_kb        NUMERIC(10,2),
-    date_run         TIMESTAMPTZ NOT NULL DEFAULT now()
+    memory_kb        REAL,
+    date_run         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- ------------------------------------------------------------
--- AUDIT_EVENTS  (undo / audit trail)
--- ------------------------------------------------------------
+ 
+-- AUDIT_EVENTS  (populated by the stack-based undo log at runtime)
+ 
 CREATE TABLE audit_events (
-    event_id             SERIAL PRIMARY KEY,
+    event_id             INTEGER PRIMARY KEY AUTOINCREMENT,
     event_type           TEXT NOT NULL,
-    related_request_id    INT REFERENCES service_requests(request_id),
+    related_request_id    INTEGER REFERENCES service_requests(request_id),
     description             TEXT,
-    event_time               TIMESTAMPTZ NOT NULL DEFAULT now(),
+    event_time               DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     performed_by              TEXT
 );
 
--- ------------------------------------------------------------
--- Indexes to support the required search/scheduling/graph workloads
--- ------------------------------------------------------------
-CREATE INDEX idx_routes_from             ON routes(from_location_id);
-CREATE INDEX idx_routes_to               ON routes(to_location_id);
+ 
+-- Indexes
+ 
+CREATE INDEX idx_roads_from              ON roads(from_location_id);
+CREATE INDEX idx_roads_to                ON roads(to_location_id);
 CREATE INDEX idx_requests_status         ON service_requests(status);
 CREATE INDEX idx_requests_urgency        ON service_requests(urgency);
 CREATE INDEX idx_requests_source         ON service_requests(source_location_id);
 CREATE INDEX idx_resources_availability  ON resources(availability_status);
-CREATE INDEX idx_resources_home_location ON resources(home_location);
+CREATE INDEX idx_resources_home_location ON resources(home_location_id);
 CREATE INDEX idx_locations_name          ON locations(name);
-CREATE INDEX idx_provider_location       ON service_provider(location_id);

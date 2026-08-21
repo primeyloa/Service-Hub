@@ -1,7 +1,7 @@
-package correctness;
+package servicehub.correctness;
 
-import correctness.util.BTreeInvariantChecker;
-import ds.BTree;
+import servicehub.correctness.util.BTreeInvariantChecker;
+import servicehub.ds.BTree;
 import org.junit.jupiter.api.*;
 
 import java.util.*;
@@ -50,11 +50,11 @@ class BTreeCorrectnessTest {
         @DisplayName("inorder traversal matches sorted inserted values")
         void inorderIsSorted() {
             BTree<Integer> tree = new BTree<>(3);
-            List<Integer> values = new ArrayList<>();
+            java.util.ArrayList<Integer> values = new java.util.ArrayList<>();
             Random random = new Random(99);
             for (int i = 0; i < 200; i++) values.add(random.nextInt(1000));
             for (int v : values) tree.insert(v);
-            List<Integer> expected = new ArrayList<>(new TreeSet<>(values));
+            servicehub.ds.ArrayList<Integer> expected = new servicehub.ds.ArrayList<>(new TreeSet<>(values));
             assertEquals(expected, tree.inorder());
         }
     }

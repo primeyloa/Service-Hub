@@ -1,4 +1,4 @@
-package servicehub;
+package servicehub.correctness;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 import org.junit.jupiter.api.Test;
+import servicehub.DatabaseConnection;
 
 class DatabaseConnectionTest {
 

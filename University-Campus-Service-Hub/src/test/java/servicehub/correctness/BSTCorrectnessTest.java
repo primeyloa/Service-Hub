@@ -1,6 +1,6 @@
-package correctness;
+package servicehub.correctness;
 
-import ds.BST;
+import servicehub.ds.BST;
 import org.junit.jupiter.api.*;
 
 import java.util.*;
@@ -36,7 +36,7 @@ class BSTCorrectnessTest {
             List<Integer> expected = new ArrayList<>();
             for (int v : values) expected.add(v);
             Collections.sort(expected);
-            assertEquals(expected, tree.inorder());
+            assertEquals(tree.inorder(), expected);
         }
 
         @Test
@@ -57,7 +57,7 @@ class BSTCorrectnessTest {
             tree.delete(30);
             assertFalse(tree.contains(30));
             assertTrue(tree.contains(20));
-            assertEquals(List.of(20, 50), tree.inorder());
+            assertEquals(tree.inorder(), List.of(20, 50));
         }
 
         @Test
@@ -70,7 +70,7 @@ class BSTCorrectnessTest {
             List<Integer> expected = new ArrayList<>();
             for (int v : values) if (v != 30) expected.add(v);
             Collections.sort(expected);
-            assertEquals(expected, tree.inorder());
+            assertEquals(tree.inorder(), expected);
             assertEquals(expected.size(), tree.size());
         }
     }
@@ -131,7 +131,7 @@ class BSTCorrectnessTest {
             tree.insert(0);
             assertTrue(tree.contains(Integer.MIN_VALUE));
             assertTrue(tree.contains(Integer.MAX_VALUE));
-            assertEquals(List.of(Integer.MIN_VALUE, 0, Integer.MAX_VALUE), tree.inorder());
+            assertEquals(tree.inorder(), List.of(Integer.MIN_VALUE, 0, Integer.MAX_VALUE));
         }
 
         @Test
@@ -144,7 +144,7 @@ class BSTCorrectnessTest {
             assertEquals(500, tree.size());
             List<Integer> expected = new ArrayList<>();
             for (int i = 1; i < 1000; i += 2) expected.add(i);
-            assertEquals(expected, tree.inorder());
+            assertEquals(tree.inorder(), expected);
         }
     }
 

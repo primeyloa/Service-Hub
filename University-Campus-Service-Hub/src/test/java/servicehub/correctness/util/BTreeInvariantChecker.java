@@ -1,4 +1,4 @@
-package correctness.util;
+package servicehub.correctness.util;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -49,9 +49,11 @@ public final class BTreeInvariantChecker {
     @SuppressWarnings("unchecked")
     private static void checkNode(Object node, int t, boolean isRoot,
                                    Comparable lowerExclusive, Comparable upperExclusive, int depth) {
-        List<Comparable> keys = (List<Comparable>) getFieldValue(node, KEYS_FIELD_CANDIDATES);
+        Object keysObj = getFieldValue(node, KEYS_FIELD_CANDIDATES);
+        List<Comparable> keys = toComparableList(keysObj);
         boolean leaf = (boolean) getFieldValue(node, LEAF_FIELD_CANDIDATES);
-        List<Object> children = leaf ? null : (List<Object>) getFieldValue(node, CHILDREN_FIELD_CANDIDATES);
+        Object childrenObj = leaf ? null : getFieldValue(node, CHILDREN_FIELD_CANDIDATES);
+        List<Object> children = childrenObj == null ? null : toList(childrenObj);
 
         // sortedness
         for (int i = 1; i < keys.size(); i++) {
@@ -98,6 +100,33 @@ public final class BTreeInvariantChecker {
             Comparable childLower = (i == 0) ? lowerExclusive : keys.get(i - 1);
             Comparable childUpper = (i == keys.size()) ? upperExclusive : keys.get(i);
             checkNode(children.get(i), t, false, childLower, childUpper, depth + 1);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Comparable> toComparableList(Object obj) {
+        if (obj instanceof List) return (List<Comparable>) obj;
+        return (List<Comparable>)(List<?>) toList(obj);
+    }
+
+    private static List<Object> toList(Object obj) {
+        if (obj instanceof List) return (List<Object>) obj;
+        // Handle servicehub.ds.ArrayList, DynamicArray, or any Iterable with size()/get(int)
+        try {
+            java.lang.reflect.Method sizeM = obj.getClass().getMethod("size");
+            java.lang.reflect.Method getM = obj.getClass().getMethod("get", int.class);
+            int sz = (int) sizeM.invoke(obj);
+            java.util.ArrayList<Object> out = new java.util.ArrayList<>(sz);
+            for (int i = 0; i < sz; i++) out.add(getM.invoke(obj, i));
+            return out;
+        } catch (Exception e) {
+            // fallback to Iterable iteration
+            if (obj instanceof Iterable) {
+                java.util.ArrayList<Object> out = new java.util.ArrayList<>();
+                for (Object o : (Iterable<Object>) obj) out.add(o);
+                return out;
+            }
+            throw new IllegalStateException("Cannot convert keys/children object to List: " + obj.getClass(), e);
         }
     }
 

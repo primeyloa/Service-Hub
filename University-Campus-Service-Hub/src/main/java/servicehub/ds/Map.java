@@ -17,7 +17,7 @@ public class Map<K extends Comparable<K>, V> {
     }
 
     public void put(K key, V value) {
-        if (key == null) return;
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
         MapEntry<K, V> newEntry = new MapEntry<>(key, value);
         if (root == null) {
             root = newEntry;
@@ -50,7 +50,7 @@ public class Map<K extends Comparable<K>, V> {
     }
 
     public V get(K key) {
-        if (key == null) return null;
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
         MapEntry<K, V> current = root;
         while (current != null) {
             int cmp = key.compareTo(current.key);
@@ -61,7 +61,7 @@ public class Map<K extends Comparable<K>, V> {
     }
 
     public boolean containsKey(K key) {
-        if (key == null) return false;
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
         MapEntry<K, V> current = root;
         while (current != null) {
             int cmp = key.compareTo(current.key);
@@ -72,7 +72,7 @@ public class Map<K extends Comparable<K>, V> {
     }
 
     public V remove(K key) {
-        if (key == null) return null;
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
         V removed = get(key);
         root = removeRecursive(root, key);
         return removed;

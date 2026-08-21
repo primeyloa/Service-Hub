@@ -1,5 +1,6 @@
 package servicehub.ds;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -25,6 +26,20 @@ public class ArrayList<T> implements Iterable<T> {
         }
         this.data = new Object[initialCapacity];
         this.size = 0;
+    }
+
+    public ArrayList(Collection<? extends T> c) {
+        if (c == null) throw new IllegalArgumentException("Collection must not be null");
+        this.data = new Object[Math.max(DEFAULT_CAPACITY, c.size())];
+        this.size = 0;
+        for (T item : c) add(item);
+    }
+
+    public ArrayList(Iterable<? extends T> iterable) {
+        this(DEFAULT_CAPACITY);
+        if (iterable != null) {
+            for (T item : iterable) add(item);
+        }
     }
 
     public void add(T item) {
@@ -103,6 +118,77 @@ public class ArrayList<T> implements Iterable<T> {
             data[i] = null;
         }
         size = 0;
+    }
+
+    @SuppressWarnings("unchecked")
+    public ArrayList<T> subList(int fromIndex, int toIndex) {
+        checkIndex(fromIndex);
+        checkIndex(toIndex - 1);
+        if (fromIndex > toIndex) {
+            throw new IllegalArgumentException("fromIndex(" + fromIndex + ") > toIndex(" + toIndex + ")");
+        }
+        ArrayList<T> sublist = new ArrayList<>(toIndex - fromIndex);
+        for (int i = fromIndex; i < toIndex; i++) {
+            sublist.add(get(i));
+        }
+        return sublist;
+    }
+
+    public void addAll(ArrayList<? extends T> c) {
+        if (c == null) return;
+        for (T item : c) {
+            add(item);
+        }
+    }
+
+    public void addAll(Collection<? extends T> c) {
+        if (c == null) return;
+        for (T item : c) add(item);
+    }
+
+    public void addAll(Iterable<? extends T> iterable) {
+        if (iterable == null) return;
+        for (T item : iterable) add(item);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (o instanceof ArrayList) {
+            ArrayList<?> other = (ArrayList<?>) o;
+            if (size != other.size) return false;
+            for (int i = 0; i < size; i++) {
+                if (!equalsNullSafe(data[i], other.data[i])) return false;
+            }
+            return true;
+        }
+        if (o instanceof java.util.List) {
+            java.util.List<?> other = (java.util.List<?>) o;
+            if (size != other.size()) return false;
+            for (int i = 0; i < size; i++) {
+                if (!equalsNullSafe(data[i], other.get(i))) return false;
+            }
+            return true;
+        }
+        if (o instanceof Iterable) {
+            java.util.Iterator<?> it = ((Iterable<?>) o).iterator();
+            for (int i = 0; i < size; i++) {
+                if (!it.hasNext()) return false;
+                if (!equalsNullSafe(data[i], it.next())) return false;
+            }
+            return !it.hasNext();
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        int h = 1;
+        for (int i = 0; i < size; i++) {
+            h = 31 * h + (data[i] == null ? 0 : data[i].hashCode());
+        }
+        return h;
     }
 
     public Object[] toArray() {

@@ -14,14 +14,17 @@ public class Set<T> {
     }
 
     public void add(T item) {
+        if (item == null) throw new IllegalArgumentException("Null values not allowed");
         table.put(item, true);
     }
 
     public boolean contains(T item) {
+        if (item == null) throw new IllegalArgumentException("Null values not allowed");
         return table.containsKey(item);
     }
 
     public boolean remove(T item) {
+        if (item == null) throw new IllegalArgumentException("Null values not allowed");
         return table.remove(item) != null;
     }
 

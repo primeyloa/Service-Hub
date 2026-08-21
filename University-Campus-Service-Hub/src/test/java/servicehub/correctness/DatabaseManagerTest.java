@@ -1,8 +1,10 @@
-package servicehub;
+package servicehub.correctness;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import servicehub.DatabaseManager;
 import servicehub.ds.ArrayList;
 import servicehub.model.AuditEvent;
 import servicehub.model.Location;

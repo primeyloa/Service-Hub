@@ -66,7 +66,7 @@ public class HashTable<K, V> {
     }
 
     public V get(K key) {
-        if (key == null) return null;
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
         int index = hash(key);
         HashNode<K, V> current = table[index];
         while (current != null) {
@@ -79,7 +79,7 @@ public class HashTable<K, V> {
     }
 
     public boolean containsKey(K key) {
-        if (key == null) return false;
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
         int index = hash(key);
         HashNode<K, V> current = table[index];
         while (current != null) {
@@ -92,7 +92,7 @@ public class HashTable<K, V> {
     }
 
     public V remove(K key) {
-        if (key == null) return null;
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
         int index = hash(key);
         HashNode<K, V> current = table[index];
         HashNode<K, V> prev = null;

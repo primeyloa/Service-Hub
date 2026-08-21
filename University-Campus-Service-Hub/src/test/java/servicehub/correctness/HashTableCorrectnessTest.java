@@ -1,6 +1,6 @@
-package correctness;
+package servicehub.correctness;
 
-import ds.HashTable;
+import servicehub.ds.HashTable;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;

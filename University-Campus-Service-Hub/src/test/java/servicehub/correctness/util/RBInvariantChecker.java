@@ -1,4 +1,4 @@
-package correctness.util;
+package servicehub.correctness.util;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -115,6 +115,7 @@ public final class RBInvariantChecker {
                     f.setAccessible(true);
                     Object val = f.get(node);
                     if (val == null) return false;
+                    if (val instanceof Boolean) return (Boolean) val; // true = red
                     String s = val.toString();
                     return s.equalsIgnoreCase("RED") || s.equalsIgnoreCase("R");
                 } catch (Exception ignored) { }

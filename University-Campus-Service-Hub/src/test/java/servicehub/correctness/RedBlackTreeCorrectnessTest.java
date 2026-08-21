@@ -1,7 +1,7 @@
-package correctness;
+package servicehub.correctness;
 
-import correctness.util.RBInvariantChecker;
-import ds.RedBlackTree;
+import servicehub.correctness.util.RBInvariantChecker;
+import servicehub.ds.RedBlackTree;
 import org.junit.jupiter.api.*;
 
 import java.util.*;
@@ -36,7 +36,7 @@ class RedBlackTreeCorrectnessTest {
             List<Integer> expected = new ArrayList<>();
             for (int v : values) expected.add(v);
             Collections.sort(expected);
-            assertEquals(expected, tree.inorder());
+            assertEquals(tree.inorder(), expected);
         }
 
         @Test
@@ -71,7 +71,7 @@ class RedBlackTreeCorrectnessTest {
             }
             assertValidRBTree();
             assertEquals(reference.size(), tree.size());
-            assertEquals(new ArrayList<>(reference), tree.inorder());
+            assertEquals(tree.inorder(), new ArrayList<>(reference));
         }
     }
 

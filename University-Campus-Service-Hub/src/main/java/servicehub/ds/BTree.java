@@ -1,6 +1,4 @@
-package ds;
-
-import servicehub.ds.Graph;
+package servicehub.ds;
 
 public class BTree<T extends Comparable<T>> {
 
@@ -9,8 +7,8 @@ public class BTree<T extends Comparable<T>> {
     private int size = 0;
 
     private class Node {
-        List<T> keys = new ArrayList<>();
-        List<Node> children = new ArrayList<>();
+        ArrayList<T> keys = new ArrayList<>();
+        ArrayList<Node> children = new ArrayList<>();
         boolean leaf = true;
     }
 
@@ -66,8 +64,8 @@ public class BTree<T extends Comparable<T>> {
 
     public boolean isEmpty() { return size == 0; }
 
-    public List<T> inorder() {
-        List<T> out = new ArrayList<>();
+    public ArrayList<T> inorder() {
+        ArrayList<T> out = new ArrayList<>();
         inorder(root, out);
         return out;
     }
@@ -82,7 +80,7 @@ public class BTree<T extends Comparable<T>> {
         return search(node.children.get(i), value);
     }
 
-    private void inorder(Node node, List<T> out) {
+    private void inorder(Node node, ArrayList<T> out) {
         for (int i = 0; i < node.keys.size(); i++) {
             if (!node.leaf) inorder(node.children.get(i), out);
             out.add(node.keys.get(i));
@@ -99,11 +97,13 @@ public class BTree<T extends Comparable<T>> {
         T median = y.keys.get(t - 1);
 
         z.keys.addAll(y.keys.subList(t, y.keys.size()));
-        List<T> newYKeys = new ArrayList<>(y.keys.subList(0, t - 1));
+        ArrayList<T> newYKeys = new ArrayList<>();
+        newYKeys.addAll(y.keys.subList(0, t - 1));
 
         if (!y.leaf) {
             z.children.addAll(y.children.subList(t, y.children.size()));
-            List<Node> newYChildren = new ArrayList<>(y.children.subList(0, t));
+            ArrayList<Node> newYChildren = new ArrayList<>();
+            newYChildren.addAll(y.children.subList(0, t));
             y.children.clear();
             y.children.addAll(newYChildren);
         }

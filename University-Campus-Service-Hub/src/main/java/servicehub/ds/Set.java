@@ -1,21 +1,31 @@
-public class Set {
+package servicehub.ds;
 
-    private HashTable table;
+/**
+ * Generic Set built on top of the custom chaining HashTable.
+ *
+ * @param <T> element type
+ */
+public class Set<T> {
+
+    private final HashTable<T, Boolean> table;
 
     public Set() {
-        table = new HashTable();
+        table = new HashTable<>();
     }
 
-    public void add(int requestID) {
-        table.insert(requestID);
+    public void add(T item) {
+        if (item == null) throw new IllegalArgumentException("Null values not allowed");
+        table.put(item, true);
     }
 
-    public boolean contains(int requestID) {
-        return table.contains(requestID);
+    public boolean contains(T item) {
+        if (item == null) throw new IllegalArgumentException("Null values not allowed");
+        return table.containsKey(item);
     }
 
-    public void remove(int requestID) {
-        table.delete(requestID);
+    public boolean remove(T item) {
+        if (item == null) throw new IllegalArgumentException("Null values not allowed");
+        return table.remove(item) != null;
     }
 
     public int size() {
@@ -23,7 +33,7 @@ public class Set {
     }
 
     public boolean isEmpty() {
-        return table.size() == 0;
+        return table.isEmpty();
     }
 
     public double getLoadFactor() {
@@ -32,10 +42,6 @@ public class Set {
 
     public int getCollisionCount() {
         return table.getCollisionCount();
-    }
-
-    public void display() {
-        table.display();
     }
 
     public void clear() {

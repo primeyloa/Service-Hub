@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Service-Hub.iml" filepath="$PROJECT_DIR$/.idea/Service-Hub.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/StructEnqueue.iml" filepath="$PROJECT_DIR$/.idea/StructEnqueue.iml" />
     </modules>
   </component>
 </project>

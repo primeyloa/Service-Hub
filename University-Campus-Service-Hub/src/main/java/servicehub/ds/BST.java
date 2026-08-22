@@ -1,7 +1,5 @@
 package servicehub.ds;
 
-import servicehub.ds.Graph;
-
 
 public class BST<T extends Comparable<T>> {
 
@@ -78,13 +76,13 @@ public class BST<T extends Comparable<T>> {
     }
 
 
-    public List<T> inorder() {
-        List<T> out = new ArrayList<>();
+    public ArrayList<T> inorder() {
+        ArrayList<T> out = new ArrayList<>();
         inorder(root, out);
         return out;
     }
 
-    private void inorder(Node<T> node, List<T> out) {
+    private void inorder(Node<T> node, ArrayList<T> out) {
         if (node == null) return;
         inorder(node.left, out);
         out.add(node.key);

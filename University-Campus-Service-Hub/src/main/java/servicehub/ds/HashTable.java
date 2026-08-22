@@ -1,91 +1,157 @@
 package servicehub.ds;
-import servicehub.ds.Graph;
 
-
+/**
+ * Generic chaining HashTable (HashMap built from scratch).
+ * Supports put, get, remove, containsKey, load-factor and collision statistics.
+ *
+ * @param <K> key type
+ * @param <V> value type
+ */
 public class HashTable<K, V> {
 
-    private static final int INITIAL_CAPACITY = 16;
-    private static final double LOAD_FACTOR_THRESHOLD = 0.75;
+    private static final int DEFAULT_SIZE = 149;
 
-    private static class Entry<K, V> {
-        final K key;
-        V value;
-        Entry(K key, V value) { this.key = key; this.value = value; }
+    @SuppressWarnings("unchecked")
+    private HashNode<K, V>[] table;
+    private int bucketCount;
+    private int elementCount;
+    private int collisionCount;
+
+    public HashTable() {
+        this(DEFAULT_SIZE);
     }
 
     @SuppressWarnings("unchecked")
-    private List<Entry<K, V>>[] buckets = new List[INITIAL_CAPACITY];
-    private int size = 0;
+    public HashTable(int bucketSize) {
+        if (bucketSize <= 0) {
+            throw new IllegalArgumentException("Bucket size must be positive");
+        }
+        this.bucketCount = bucketSize;
+        this.table = new HashNode[bucketSize];
+        this.elementCount = 0;
+        this.collisionCount = 0;
+    }
 
-    private int bucketIndex(K key, int capacity) {
+    private int hash(Object key) {
+        if (key == null) return 0;
         int h = key.hashCode();
-        h ^= (h >>> 16);
-        return Math.floorMod(h, capacity);
+        return (h & Integer.MAX_VALUE) % bucketCount;
     }
 
     public void put(K key, V value) {
-        if (key == null) throw new IllegalArgumentException("key must not be null");
-        int idx = bucketIndex(key, buckets.length);
-        if (buckets[idx] == null) buckets[idx] = new ArrayList<>();
-        for (Entry<K, V> e : buckets[idx]) {
-            if (e.key.equals(key)) {
-                e.value = value;
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
+        int index = hash(key);
+        HashNode<K, V> head = table[index];
+
+        if (head == null) {
+            table[index] = new HashNode<>(key, value);
+            elementCount++;
+            return;
+        }
+
+        HashNode<K, V> current = head;
+        while (current != null) {
+            if (current.key.equals(key)) {
+                current.value = value; // update existing
                 return;
             }
+            current = current.next;
         }
-        buckets[idx].add(new Entry<>(key, value));
-        size++;
-        if ((double) size / buckets.length > LOAD_FACTOR_THRESHOLD) resize();
+
+        collisionCount++; // existing element already in the bucket
+        HashNode<K, V> newNode = new HashNode<>(key, value);
+        newNode.next = head;
+        table[index] = newNode;
+        elementCount++;
     }
 
     public V get(K key) {
-        if (key == null) throw new IllegalArgumentException("key must not be null");
-        int idx = bucketIndex(key, buckets.length);
-        if (buckets[idx] == null) return null;
-        for (Entry<K, V> e : buckets[idx]) {
-            if (e.key.equals(key)) return e.value;
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
+        int index = hash(key);
+        HashNode<K, V> current = table[index];
+        while (current != null) {
+            if (current.key.equals(key)) {
+                return current.value;
+            }
+            current = current.next;
         }
         return null;
     }
 
     public boolean containsKey(K key) {
-        if (key == null) throw new IllegalArgumentException("key must not be null");
-        int idx = bucketIndex(key, buckets.length);
-        if (buckets[idx] == null) return false;
-        for (Entry<K, V> e : buckets[idx]) {
-            if (e.key.equals(key)) return true;
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
+        int index = hash(key);
+        HashNode<K, V> current = table[index];
+        while (current != null) {
+            if (current.key.equals(key)) {
+                return true;
+            }
+            current = current.next;
         }
         return false;
     }
 
-    public void remove(K key) {
-        if (key == null) throw new IllegalArgumentException("key must not be null");
-        int idx = bucketIndex(key, buckets.length);
-        if (buckets[idx] == null) return;
-        buckets[idx].removeIf(e -> {
-            boolean match = e.key.equals(key);
-            if (match) size--;
-            return match;
-        });
+    public V remove(K key) {
+        if (key == null) throw new IllegalArgumentException("Null keys are not allowed");
+        int index = hash(key);
+        HashNode<K, V> current = table[index];
+        HashNode<K, V> prev = null;
+
+        while (current != null) {
+            if (current.key.equals(key)) {
+                if (prev == null) {
+                    table[index] = current.next;
+                } else {
+                    prev.next = current.next;
+                }
+                elementCount--;
+                return current.value;
+            }
+            prev = current;
+            current = current.next;
+        }
+        return null;
     }
 
-    public int size() { return size; }
+    public int size() {
+        return elementCount;
+    }
 
-    public boolean isEmpty() { return size == 0; }
+    public boolean isEmpty() {
+        return elementCount == 0;
+    }
 
-    @SuppressWarnings("unchecked")
-    private void resize() {
-        List<Entry<K, V>>[] old = buckets;
-        buckets = new List[old.length * 2];
-        for (List<Entry<K, V>> bucket : old) {
-            if (bucket == null) continue;
-            for (Entry<K, V> e : bucket) {
-                int idx = bucketIndex(e.key, buckets.length);
-                if (buckets[idx] == null) buckets[idx] = new ArrayList<>();
-                buckets[idx].add(e);
+    public double getLoadFactor() {
+        return (double) elementCount / bucketCount;
+    }
+
+    public int getCollisionCount() {
+        return collisionCount;
+    }
+
+    public int getBucketCount() {
+        return bucketCount;
+    }
+
+    public void clear() {
+        for (int i = 0; i < bucketCount; i++) table[i] = null;
+        elementCount = 0;
+        collisionCount = 0;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("{");
+        boolean first = true;
+        for (int i = 0; i < bucketCount; i++) {
+            HashNode<K, V> current = table[i];
+            while (current != null) {
+                if (!first) sb.append(", ");
+                sb.append(current.key).append("=").append(current.value);
+                first = false;
+                current = current.next;
             }
         }
+        return sb.append("}").toString();
     }
-
-    public int bucketCount() { return buckets.length; }
 }

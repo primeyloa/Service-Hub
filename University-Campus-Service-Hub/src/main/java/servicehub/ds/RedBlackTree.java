@@ -1,260 +1,208 @@
 package servicehub.ds;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.NoSuchElementException; // Not a data strucuture implementation but extends a base exception class -- no harm nor violation
 
+/**
+ * Self-balancing Red-Black Tree implementation.
+ *
+ * @param <K> key type
+ */
+public class RedBlackTree<K extends Comparable<K>> {
 
-public class RedBlackTree<T extends Comparable<T>> {
+    private static final boolean RED = true;
+    private static final boolean BLACK = false;
 
-    static final boolean RED = true;
-    static final boolean BLACK = false;
+    private static final class Node<K> {
+        K key;
+        boolean color;
+        Node<K> left;
+        Node<K> right;
+        Node<K> parent;
 
-    static class Node<T> {
-        T key;
-        Node<T> left, right, parent;
-        boolean red;
-        Node(T key, boolean red, Node<T> nil) {
+        Node(K key, boolean color) {
             this.key = key;
-            this.red = red;
-            this.left = nil;
-            this.right = nil;
-            this.parent = nil;
+            this.color = color;
         }
     }
 
-    private final Node<T> NIL = new Node<>(null, BLACK, null);
-    private Node<T> root = NIL;
-    private int size = 0;
+    private Node<K> root;
+    private int size;
 
-    public RedBlackTree() {
-        NIL.left = NIL;
-        NIL.right = NIL;
-        NIL.parent = NIL;
+    private boolean isRed(Node<K> node) {
+        return node != null && node.color == RED;
     }
 
+    private boolean isBlack(Node<K> node) {
+        return node == null || node.color == BLACK;
+    }
 
+    public void insert(K key) {
+        if (key == null) throw new IllegalArgumentException("Key must not be null");
+        if (contains(key)) return;
 
-    public void insert(T value) {
-        if (value == null) throw new IllegalArgumentException("value must not be null");
-        Node<T> y = NIL;
-        Node<T> x = root;
-        while (x != NIL) {
-            y = x;
-            int cmp = value.compareTo(x.key);
-            if (cmp == 0) return; // duplicate: no-op
-            x = cmp < 0 ? x.left : x.right;
+        Node<K> node = new Node<>(key, RED);
+        if (root == null) {
+            root = node;
+            root.color = BLACK;
+            size++;
+            return;
         }
-        Node<T> z = new Node<>(value, RED, NIL);
-        z.parent = y;
-        if (y == NIL) root = z;
-        else if (value.compareTo(y.key) < 0) y.left = z;
-        else y.right = z;
+
+        Node<K> curr = root;
+        Node<K> parent = null;
+        int cmp = 0;
+        while (curr != null) {
+            parent = curr;
+            cmp = key.compareTo(curr.key);
+            if (cmp < 0) curr = curr.left;
+            else curr = curr.right;
+        }
+
+        node.parent = parent;
+        if (cmp < 0) parent.left = node;
+        else parent.right = node;
+
         size++;
-        insertFixup(z);
+        fixInsert(node);
     }
 
-    public boolean contains(T value) {
-        if (value == null) throw new IllegalArgumentException("value must not be null");
-        return find(value) != NIL;
-    }
+    private void fixInsert(Node<K> z) {
+        while (z != root && isRed(z.parent)) {
+            Node<K> grandparent = z.parent.parent;
+            if (grandparent == null) break;
 
-    public void delete(T value) {
-        if (value == null) throw new IllegalArgumentException("value must not be null");
-        Node<T> z = find(value);
-        if (z == NIL) return; // not present: no-op
-        deleteNode(z);
-        size--;
-    }
-
-    public int size() { return size; }
-
-    public boolean isEmpty() { return size == 0; }
-
-    public List<T> inorder() {
-        List<T> out = new ArrayList<>();
-        inorder(root, out);
-        return out;
-    }
-
-
-    Node<T> root() { return root; }
-    Node<T> nil() { return NIL; }
-
-
-
-    private Node<T> find(T value) {
-        Node<T> x = root;
-        while (x != NIL) {
-            int cmp = value.compareTo(x.key);
-            if (cmp == 0) return x;
-            x = cmp < 0 ? x.left : x.right;
+            if (z.parent == grandparent.left) {
+                Node<K> uncle = grandparent.right;
+                if (isRed(uncle)) {
+                    z.parent.color = BLACK;
+                    uncle.color = BLACK;
+                    grandparent.color = RED;
+                    z = grandparent;
+                } else {
+                    if (z == z.parent.right) {
+                        z = z.parent;
+                        rotateLeft(z);
+                    }
+                    z.parent.color = BLACK;
+                    grandparent.color = RED;
+                    rotateRight(grandparent);
+                }
+            } else {
+                Node<K> uncle = grandparent.left;
+                if (isRed(uncle)) {
+                    z.parent.color = BLACK;
+                    uncle.color = BLACK;
+                    grandparent.color = RED;
+                    z = grandparent;
+                } else {
+                    if (z == z.parent.left) {
+                        z = z.parent;
+                        rotateRight(z);
+                    }
+                    z.parent.color = BLACK;
+                    grandparent.color = RED;
+                    rotateLeft(grandparent);
+                }
+            }
         }
-        return NIL;
+        root.color = BLACK;
     }
 
-    private void inorder(Node<T> node, List<T> out) {
-        if (node == NIL) return;
-        inorder(node.left, out);
-        out.add(node.key);
-        inorder(node.right, out);
-    }
-
-    private void leftRotate(Node<T> x) {
-        Node<T> y = x.right;
+    private void rotateLeft(Node<K> x) {
+        Node<K> y = x.right;
         x.right = y.left;
-        if (y.left != NIL) y.left.parent = x;
+        if (y.left != null) y.left.parent = x;
         y.parent = x.parent;
-        if (x.parent == NIL) root = y;
-        else if (x == x.parent.left) x.parent.left = y;
-        else x.parent.right = y;
+        if (x.parent == null) {
+            root = y;
+        } else if (x == x.parent.left) {
+            x.parent.left = y;
+        } else {
+            x.parent.right = y;
+        }
         y.left = x;
         x.parent = y;
     }
 
-    private void rightRotate(Node<T> x) {
-        Node<T> y = x.left;
-        x.left = y.right;
-        if (y.right != NIL) y.right.parent = x;
-        y.parent = x.parent;
-        if (x.parent == NIL) root = y;
-        else if (x == x.parent.right) x.parent.right = y;
-        else x.parent.left = y;
-        y.right = x;
-        x.parent = y;
-    }
-
-    private void insertFixup(Node<T> z) {
-        while (z.parent.red) {
-            if (z.parent == z.parent.parent.left) {
-                Node<T> y = z.parent.parent.right; // uncle
-                if (y.red) {
-                    z.parent.red = BLACK;
-                    y.red = BLACK;
-                    z.parent.parent.red = RED;
-                    z = z.parent.parent;
-                } else {
-                    if (z == z.parent.right) {
-                        z = z.parent;
-                        leftRotate(z);
-                    }
-                    z.parent.red = BLACK;
-                    z.parent.parent.red = RED;
-                    rightRotate(z.parent.parent);
-                }
-            } else {
-                Node<T> y = z.parent.parent.left; // uncle
-                if (y.red) {
-                    z.parent.red = BLACK;
-                    y.red = BLACK;
-                    z.parent.parent.red = RED;
-                    z = z.parent.parent;
-                } else {
-                    if (z == z.parent.left) {
-                        z = z.parent;
-                        rightRotate(z);
-                    }
-                    z.parent.red = BLACK;
-                    z.parent.parent.red = RED;
-                    leftRotate(z.parent.parent);
-                }
-            }
-        }
-        root.red = BLACK;
-    }
-
-    private void transplant(Node<T> u, Node<T> v) {
-        if (u.parent == NIL) root = v;
-        else if (u == u.parent.left) u.parent.left = v;
-        else u.parent.right = v;
-        v.parent = u.parent;
-    }
-
-    private Node<T> minimum(Node<T> x) {
-        while (x.left != NIL) x = x.left;
-        return x;
-    }
-
-    private void deleteNode(Node<T> z) {
-        Node<T> y = z;
-        boolean yOriginalRed = y.red;
-        Node<T> x;
-        if (z.left == NIL) {
-            x = z.right;
-            transplant(z, z.right);
-        } else if (z.right == NIL) {
-            x = z.left;
-            transplant(z, z.left);
+    private void rotateRight(Node<K> y) {
+        Node<K> x = y.left;
+        y.left = x.right;
+        if (x.right != null) x.right.parent = y;
+        x.parent = y.parent;
+        if (y.parent == null) {
+            root = x;
+        } else if (y == y.parent.right) {
+            y.parent.right = x;
         } else {
-            y = minimum(z.right);
-            yOriginalRed = y.red;
-            x = y.right;
-            if (y.parent == z) {
-                x.parent = y;
-            } else {
-                transplant(y, y.right);
-                y.right = z.right;
-                y.right.parent = y;
-            }
-            transplant(z, y);
-            y.left = z.left;
-            y.left.parent = y;
-            y.red = z.red;
+            y.parent.left = x;
         }
-        if (!yOriginalRed) deleteFixup(x);
+        x.right = y;
+        y.parent = x;
     }
 
-    private void deleteFixup(Node<T> x) {
-        while (x != root && !x.red) {
-            if (x == x.parent.left) {
-                Node<T> w = x.parent.right;
-                if (w.red) {
-                    w.red = BLACK;
-                    x.parent.red = RED;
-                    leftRotate(x.parent);
-                    w = x.parent.right;
-                }
-                if (!w.left.red && !w.right.red) {
-                    w.red = RED;
-                    x = x.parent;
-                } else {
-                    if (!w.right.red) {
-                        w.left.red = BLACK;
-                        w.red = RED;
-                        rightRotate(w);
-                        w = x.parent.right;
-                    }
-                    w.red = x.parent.red;
-                    x.parent.red = BLACK;
-                    w.right.red = BLACK;
-                    leftRotate(x.parent);
-                    x = root;
-                }
-            } else {
-                Node<T> w = x.parent.left;
-                if (w.red) {
-                    w.red = BLACK;
-                    x.parent.red = RED;
-                    rightRotate(x.parent);
-                    w = x.parent.left;
-                }
-                if (!w.right.red && !w.left.red) {
-                    w.red = RED;
-                    x = x.parent;
-                } else {
-                    if (!w.left.red) {
-                        w.right.red = BLACK;
-                        w.red = RED;
-                        leftRotate(w);
-                        w = x.parent.left;
-                    }
-                    w.red = x.parent.red;
-                    x.parent.red = BLACK;
-                    w.left.red = BLACK;
-                    rightRotate(x.parent);
-                    x = root;
-                }
-            }
+    public boolean contains(K key) {
+        if (key == null) throw new IllegalArgumentException("Key must not be null");
+        Node<K> current = root;
+        while (current != null) {
+            int cmp = key.compareTo(current.key);
+            if (cmp == 0) return true;
+            current = cmp < 0 ? current.left : current.right;
         }
-        x.red = BLACK;
+        return false;
     }
+
+    public boolean search(K key) {
+        return contains(key);
+    }
+
+    public void delete(K key) {
+        if (key == null) throw new IllegalArgumentException("Key must not be null");
+        if (!contains(key)) return;
+        ArrayList<K> remaining = inorder();
+        remaining.remove(key);
+        clear();
+        for (K k : remaining) {
+            insert(k);
+        }
+    }
+
+    public K findMin() {
+        if (root == null) throw new NoSuchElementException("Tree is empty");
+        Node<K> current = root;
+        while (current.left != null) current = current.left;
+        return current.key;
+    }
+
+    public K findMax() {
+        if (root == null) throw new NoSuchElementException("Tree is empty");
+        Node<K> current = root;
+        while (current.right != null) current = current.right;
+        return current.key;
+    }
+
+    public ArrayList<K> inorder() {
+        ArrayList<K> out = new ArrayList<>();
+        inorderCollect(root, out);
+        return out;
+    }
+
+    private void inorderCollect(Node<K> node, ArrayList<K> out) {
+        if (node == null) return;
+        inorderCollect(node.left, out);
+        out.add(node.key);
+        inorderCollect(node.right, out);
+    }
+
+    public int height() {
+        return height(root);
+    }
+
+    private int height(Node<K> node) {
+        if (node == null) return -1;
+        return Math.max(height(node.left), height(node.right)) + 1;
+    }
+
+    public int size() { return size; }
+    public boolean isEmpty() { return root == null; }
+    public void clear() { root = null; size = 0; }
 }

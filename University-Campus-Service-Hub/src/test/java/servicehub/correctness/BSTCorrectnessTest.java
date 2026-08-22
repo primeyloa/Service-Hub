@@ -1,5 +1,4 @@
 package servicehub.correctness;
-
 import servicehub.ds.BST;
 import org.junit.jupiter.api.*;
 

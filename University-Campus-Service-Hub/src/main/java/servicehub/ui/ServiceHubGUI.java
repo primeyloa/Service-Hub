@@ -13,9 +13,11 @@ import servicehub.model.ServiceRequest;
 import servicehub.service.CampusService;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -32,12 +34,19 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Simple Java Swing interface for the University Campus Service Hub.
@@ -70,6 +79,20 @@ public class ServiceHubGUI extends JFrame {
     private JComboBox<String> toRouteCombo;
     private JComboBox<String> ruleCombo;
 
+    // experiments & charts
+    private static final String[] EXPERIMENTS = {
+            "Search comparison", "Sorting comparison", "Hash table load factor",
+            "BST vs balanced tree", "Heap priority dispatch", "Graph algorithms",
+            "All experiments"};
+
+    private JComboBox<String> experimentCombo;
+    private JPanel chartContainer;
+    private final List<LineChart> currentCharts = new java.util.ArrayList<>();
+    private DynamicArray<EmpiricalBenchmarker.BenchmarkResult> lastResults;
+    private JButton runExperimentBtn;
+    private JButton exportCsvBtn;
+    private JButton savePngBtn;
+
     public ServiceHubGUI() {
         super("University Campus Service Hub - Dispatch Simulator");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -84,6 +107,7 @@ public class ServiceHubGUI extends JFrame {
         tabs.addTab("Scheduling Queues", buildQueuesPanel());
         tabs.addTab("Optimisation", buildOptimisationPanel());
         tabs.addTab("Benchmarks", buildBenchmarksPanel());
+        tabs.addTab("Experiments & Charts", buildExperimentsPanel());
         tabs.addTab("Audit Log", buildAuditPanel());
 
         setContentPane(tabs);
@@ -356,6 +380,49 @@ public class ServiceHubGUI extends JFrame {
         return panel;
     }
 
+    private JPanel buildExperimentsPanel() {
+        JPanel panel = new JPanel(new BorderLayout(6, 6));
+        panel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        top.add(new JLabel("Experiment:"));
+        experimentCombo = new JComboBox<>(EXPERIMENTS);
+        experimentCombo.addActionListener(e -> rebuildCharts());
+        top.add(experimentCombo);
+
+        runExperimentBtn = new JButton("Run (avg of "
+                + EmpiricalBenchmarker.REPETITIONS + " repetitions)");
+        runExperimentBtn.addActionListener(e -> runSelectedExperiment());
+        top.add(runExperimentBtn);
+
+        exportCsvBtn = new JButton("Export CSV");
+        exportCsvBtn.addActionListener(e -> exportExperimentCsv());
+        exportCsvBtn.setEnabled(false);
+        top.add(exportCsvBtn);
+
+        savePngBtn = new JButton("Download Chart Image(s)");
+        savePngBtn.addActionListener(e -> downloadChartImages());
+        savePngBtn.setEnabled(false);
+        top.add(savePngBtn);
+
+        JLabel note = new JLabel(" Same machine for all runs; results also saved to reports/benchmark_results.csv");
+        note.setForeground(java.awt.Color.GRAY);
+        top.add(note);
+        panel.add(top, BorderLayout.NORTH);
+
+        chartContainer = new JPanel();
+        chartContainer.setLayout(new BoxLayout(chartContainer, BoxLayout.Y_AXIS));
+        JLabel placeholder = new JLabel("Pick an experiment and press Run to plot line graphs.");
+        placeholder.setAlignmentX(Component.CENTER_ALIGNMENT);
+        chartContainer.add(placeholder);
+        panel.add(new JScrollPane(chartContainer), BorderLayout.CENTER);
+
+        JLabel machineLabel = new JLabel(EmpiricalBenchmarker.machineSpec());
+        machineLabel.setFont(machineLabel.getFont().deriveFont(12f));
+        panel.add(machineLabel, BorderLayout.SOUTH);
+        return panel;
+    }
+
     // ------------------------------------------------------------------ actions
 
     private String selectedLocationId(JComboBox<String> combo) {
@@ -578,6 +645,200 @@ public class ServiceHubGUI extends JFrame {
                         "Benchmarks complete. See the table and reports/benchmark_results.csv");
             }
         }.execute();
+    }
+
+    // -------------------------------------------------- experiments & charts
+
+    private void runSelectedExperiment() {
+        String selection = String.valueOf(experimentCombo.getSelectedItem());
+        runExperimentBtn.setEnabled(false);
+        setTitle("University Campus Service Hub - running " + selection + "...");
+        new SwingWorker<DynamicArray<EmpiricalBenchmarker.BenchmarkResult>, Void>() {
+            @Override
+            protected DynamicArray<EmpiricalBenchmarker.BenchmarkResult> doInBackground() {
+                return switch (selection) {
+                    case "Search comparison" -> EmpiricalBenchmarker.runSearchBenchmarks();
+                    case "Sorting comparison" -> EmpiricalBenchmarker.runSortBenchmarks();
+                    case "Hash table load factor" -> EmpiricalBenchmarker.runHashBenchmarks();
+                    case "BST vs balanced tree" -> EmpiricalBenchmarker.runTreeBenchmarks();
+                    case "Heap priority dispatch" -> EmpiricalBenchmarker.runHeapBenchmarks();
+                    case "Graph algorithms" -> EmpiricalBenchmarker.runGraphBenchmarks();
+                    default -> EmpiricalBenchmarker.runAllBenchmarks();
+                };
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    lastResults = get();
+                } catch (Exception ex) {
+                    setTitle("University Campus Service Hub - Dispatch Simulator");
+                    JOptionPane.showMessageDialog(ServiceHubGUI.this,
+                            "Experiment failed: " + ex.getMessage());
+                    return;
+                }
+                rebuildCharts();
+                exportCsvBtn.setEnabled(lastResults != null && lastResults.size() > 0);
+                savePngBtn.setEnabled(!currentCharts.isEmpty());
+                runExperimentBtn.setEnabled(true);
+                setTitle("University Campus Service Hub - Dispatch Simulator");
+            }
+        }.execute();
+    }
+
+    private void rebuildCharts() {
+        chartContainer.removeAll();
+        currentCharts.clear();
+        if (lastResults == null || lastResults.size() == 0) {
+            JLabel placeholder = new JLabel("Pick an experiment and press Run to plot line graphs.");
+            placeholder.setAlignmentX(Component.CENTER_ALIGNMENT);
+            chartContainer.add(placeholder);
+            chartContainer.revalidate();
+            chartContainer.repaint();
+            savePngBtn.setEnabled(false);
+            return;
+        }
+
+        switch (String.valueOf(experimentCombo.getSelectedItem())) {
+            case "Search comparison" -> addChart(chart("Search comparison: linear vs binary",
+                    "Avg time (ns)", "LinearSearch", "BinarySearch"));
+            case "Sorting comparison" -> addChart(chart("Sorting comparison",
+                    "Avg time (ns)", "SelectionSort", "InsertionSort", "MergeSort", "QuickSort"));
+            case "Hash table load factor" -> {
+                addChart(chartWithPrefix("Hash insert time by table size", "Avg time (ns)", "HashInsert-T"));
+                addChart(chartWithPrefix("Collisions vs keys by table size", "Collision count", "HashCollisions-T"));
+            }
+            case "BST vs balanced tree" -> {
+                addChart(chart("BST vs Red-Black tree operation time",
+                        "Avg time for n ops (ns)", "BST-insert", "RBT-insert", "BST-search", "RBT-search"));
+                addChart(chart("Tree height comparison", "Height", "BST-height", "RBT-height"));
+            }
+            case "Heap priority dispatch" -> addChart(chart("Heap priority dispatch",
+                    "Avg total time (ns)", "HeapInsert", "HeapExtract"));
+            case "Graph algorithms" -> addChart(chart("Graph algorithms runtime",
+                    "Avg time (ns)", "BFS", "DFS", "Dijkstra", "KruskalMST"));
+            default -> {
+                addChart(chart("Search comparison: linear vs binary",
+                        "Avg time (ns)", "LinearSearch", "BinarySearch"));
+                addChart(chart("Sorting comparison",
+                        "Avg time (ns)", "SelectionSort", "InsertionSort", "MergeSort", "QuickSort"));
+                addChart(chartWithPrefix("Hash insert time by table size", "Avg time (ns)", "HashInsert-T"));
+                addChart(chart("BST vs Red-Black tree operation time",
+                        "Avg time for n ops (ns)", "BST-insert", "RBT-insert", "BST-search", "RBT-search"));
+                addChart(chart("Tree height comparison", "Height", "BST-height", "RBT-height"));
+                addChart(chart("Heap priority dispatch",
+                        "Avg total time (ns)", "HeapInsert", "HeapExtract"));
+                addChart(chart("Graph algorithms runtime",
+                        "Avg time (ns)", "BFS", "DFS", "Dijkstra", "KruskalMST"));
+            }
+        }
+        savePngBtn.setEnabled(!currentCharts.isEmpty());
+        chartContainer.revalidate();
+        chartContainer.repaint();
+    }
+
+    private void addChart(LineChart lineChart) {
+        if (lineChart == null || lineChart.isEmpty()) {
+            return;
+        }
+        currentCharts.add(lineChart);
+        chartContainer.add(lineChart);
+    }
+
+    private LineChart chart(String title, String yLabel, String... algorithmNames) {
+        List<String> names = new java.util.ArrayList<>();
+        List<double[]> xs = new java.util.ArrayList<>();
+        List<double[]> ys = new java.util.ArrayList<>();
+        for (String name : algorithmNames) {
+            double[][] data = seriesData(name);
+            if (data[0].length > 0) {
+                names.add(name);
+                xs.add(data[0]);
+                ys.add(data[1]);
+            }
+        }
+        return names.isEmpty() ? null : LineChart.create(title, yLabel, names, xs, ys);
+    }
+
+    private LineChart chartWithPrefix(String title, String yLabel, String prefix) {
+        List<String> distinct = new java.util.ArrayList<>();
+        for (int i = 0; i < lastResults.size(); i++) {
+            String alg = lastResults.get(i).algorithm();
+            if (alg.startsWith(prefix) && !distinct.contains(alg)) {
+                distinct.add(alg);
+            }
+        }
+        distinct.sort(Comparator.naturalOrder());
+        return chart(title, yLabel, distinct.toArray(new String[0]));
+    }
+
+    /** Returns {x[], y[]} for one algorithm, sorted ascending by input size. */
+    private double[][] seriesData(String algorithmName) {
+        List<long[]> points = new java.util.ArrayList<>();
+        if (lastResults != null) {
+            for (int i = 0; i < lastResults.size(); i++) {
+                EmpiricalBenchmarker.BenchmarkResult r = lastResults.get(i);
+                if (r.algorithm().equals(algorithmName)) {
+                    points.add(new long[]{r.inputSize(), r.avgTimeNs()});
+                }
+            }
+        }
+        points.sort(Comparator.comparingLong(a -> a[0]));
+        double[] x = new double[points.size()];
+        double[] y = new double[points.size()];
+        for (int i = 0; i < points.size(); i++) {
+            x[i] = points.get(i)[0];
+            y[i] = points.get(i)[1];
+        }
+        return new double[][]{x, y};
+    }
+
+    private void exportExperimentCsv() {
+        if (lastResults == null || lastResults.size() == 0) {
+            return;
+        }
+        try {
+            java.nio.file.Files.createDirectories(java.nio.file.Paths.get("reports"));
+            String slug = String.valueOf(experimentCombo.getSelectedItem())
+                    .replaceAll("[^A-Za-z0-9]+", "_");
+            File target = new File("reports/" + slug + ".csv");
+            try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
+                writer.println("algorithm_name,input_size,time_ns,memory_kb,date_run");
+                for (int i = 0; i < lastResults.size(); i++) {
+                    EmpiricalBenchmarker.BenchmarkResult r = lastResults.get(i);
+                    writer.printf("%s,%d,%d,%d,%s%n",
+                            r.algorithm(), r.inputSize(), r.avgTimeNs(),
+                            r.memoryKb(), LocalDate.now());
+                }
+            }
+            JOptionPane.showMessageDialog(this,
+                    "Exported " + lastResults.size() + " rows to " + target.getAbsolutePath());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "CSV export failed: " + ex.getMessage());
+        }
+    }
+
+    private void downloadChartImages() {
+        if (currentCharts.isEmpty()) {
+            return;
+        }
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Choose folder for PNG images");
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+        File dir = chooser.getSelectedFile();
+        StringBuilder saved = new StringBuilder();
+        for (LineChart c : currentCharts) {
+            String safeTitle = c.getChartTitle().replaceAll("[^A-Za-z0-9]+", "_");
+            File out = c.savePng(new File(dir, safeTitle + ".png"));
+            if (out != null) {
+                saved.append(out.getAbsolutePath()).append('\n');
+            }
+        }
+        JOptionPane.showMessageDialog(this,
+                saved.length() == 0 ? "No images saved." : "Saved:\n" + saved);
     }
 
     // ------------------------------------------------------------------ refresh

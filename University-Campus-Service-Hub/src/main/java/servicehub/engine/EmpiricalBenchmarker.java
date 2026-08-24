@@ -13,10 +13,12 @@ import servicehub.DatabaseManager;
 import servicehub.algorithms.GraphAlgorithms;
 import servicehub.algorithms.Search;
 import servicehub.algorithms.Sort;
+import servicehub.ds.BinarySearchTree;
 import servicehub.ds.DynamicArray;
 import servicehub.ds.Graph;
 import servicehub.ds.HashTable;
 import servicehub.ds.PriorityQueue;
+import servicehub.ds.RedBlackTree;
 
 /**
  * Empirical efficiency laboratory. Measures time and memory for the required
@@ -29,6 +31,9 @@ public class EmpiricalBenchmarker {
     public static final int REPETITIONS = 3;
     private static final int[] SEARCH_SORT_SIZES = {100, 500, 1_000, 5_000, 10_000};
     private static final int[] GRAPH_SIZES = {50, 100, 200, 500};
+    private static final int[] TREE_SIZES = {100, 500, 1_000, 5_000, 10_000};
+    private static final int[] HASH_KEY_COUNTS = {100, 1_000, 5_000, 10_000, 20_000};
+    private static final int[] HEAP_SIZES = {100, 1_000, 5_000, 10_000, 20_000};
 
     public record BenchmarkResult(String algorithm, int inputSize, long avgTimeNs, long memoryKb) {
         @Override
@@ -51,6 +56,7 @@ public class EmpiricalBenchmarker {
         results.addAll(runSearchBenchmarks());
         results.addAll(runSortBenchmarks());
         results.addAll(runHashBenchmarks());
+        results.addAll(runTreeBenchmarks());
         results.addAll(runHeapBenchmarks());
         results.addAll(runGraphBenchmarks());
         writeCsv(results);
@@ -113,20 +119,102 @@ public class EmpiricalBenchmarker {
 
     public static DynamicArray<BenchmarkResult> runHashBenchmarks() {
         DynamicArray<BenchmarkResult> results = new DynamicArray<>();
-        int[] keys = {100, 1_000, 5_000, 10_000, 20_000};
-        for (int count : keys) {
-            HashTable<String, Integer> table = new HashTable<>(101);
-            long start = System.nanoTime();
-            for (int i = 0; i < count; i++) {
-                table.put("K" + i, i);
+        int[] tableSizes = {64, 128, 256, 512};
+        for (int count : HASH_KEY_COUNTS) {
+            for (int buckets : tableSizes) {
+                HashTable<String, Integer> table = new HashTable<>(buckets);
+                long mem = currentMemoryKb();
+
+                long sum = 0;
+                for (int r = 0; r < REPETITIONS; r++) {
+                    table.clear();
+                    long start = System.nanoTime();
+                    for (int i = 0; i < count; i++) {
+                        table.put("K" + i, i);
+                    }
+                    sum += System.nanoTime() - start;
+                }
+                String label = "HashInsert-T" + buckets;
+                save(new BenchmarkResult(label, count, sum / REPETITIONS, mem));
+                results.add(new BenchmarkResult(label, count, sum / REPETITIONS, mem));
+
+                // Collision counts are recorded in the value slot so they can be
+                // plotted as their own series; the name makes that unambiguous.
+                String colLabel = "HashCollisions-T" + buckets
+                        + "-loadfactor-" + Math.round(table.getLoadFactor() * 100) + "pct";
+                save(new BenchmarkResult(colLabel, count, table.getCollisionCount(), mem));
+                results.add(new BenchmarkResult(colLabel, count, table.getCollisionCount(), mem));
             }
-            long duration = System.nanoTime() - start;
-            long mem = currentMemoryKb();
-            String name = "HashTable-" + count + "keys-" + table.getCollisionCount() + "collisions";
-            save(new BenchmarkResult(name, count, duration, mem));
-            results.add(new BenchmarkResult("HashTable-loadfactor-" + Math.round(table.getLoadFactor() * 100) + "pct", count, duration, mem));
         }
         return results;
+    }
+
+    /**
+     * BST vs self-balancing (Red-Black) tree: insert time, search time and
+     * final height at multiple sizes. Keys are inserted in random order.
+     */
+    public static DynamicArray<BenchmarkResult> runTreeBenchmarks() {
+        DynamicArray<BenchmarkResult> results = new DynamicArray<>();
+        for (int size : TREE_SIZES) {
+            Integer[] keys = shuffledKeys(size);
+            long mem = currentMemoryKb();
+
+            BinarySearchTree<Integer, Integer> bst = new BinarySearchTree<>();
+            RedBlackTree<Integer> rbt = new RedBlackTree<>();
+
+            long bstInsertSum = 0;
+            long bstSearchSum = 0;
+            for (int r = 0; r < REPETITIONS; r++) {
+                bst.clear();
+                long start = System.nanoTime();
+                for (int k : keys) bst.insert(k);
+                bstInsertSum += System.nanoTime() - start;
+
+                start = System.nanoTime();
+                for (int k : keys) bst.search(k);
+                bstSearchSum += System.nanoTime() - start;
+            }
+
+            long rbtInsertSum = 0;
+            long rbtSearchSum = 0;
+            for (int r = 0; r < REPETITIONS; r++) {
+                rbt.clear();
+                long start = System.nanoTime();
+                for (int k : keys) rbt.insert(k);
+                rbtInsertSum += System.nanoTime() - start;
+
+                start = System.nanoTime();
+                for (int k : keys) rbt.contains(k);
+                rbtSearchSum += System.nanoTime() - start;
+            }
+
+            record(results, "BST-insert", size, bstInsertSum / REPETITIONS, mem);
+            record(results, "RBT-insert", size, rbtInsertSum / REPETITIONS, mem);
+            record(results, "BST-search", size, bstSearchSum / REPETITIONS, mem);
+            record(results, "RBT-search", size, rbtSearchSum / REPETITIONS, mem);
+            record(results, "BST-height", size, bst.height(), mem);
+            record(results, "RBT-height", size, rbt.height(), mem);
+        }
+        return results;
+    }
+
+    private static void record(DynamicArray<BenchmarkResult> results,
+                               String name, int size, long value, long memoryKb) {
+        save(new BenchmarkResult(name, size, value, memoryKb));
+        results.add(new BenchmarkResult(name, size, value, memoryKb));
+    }
+
+    private static Integer[] shuffledKeys(int size) {
+        Integer[] keys = new Integer[size];
+        for (int i = 0; i < size; i++) keys[i] = i;
+        Random rnd = new Random(1234);
+        for (int i = size - 1; i > 0; i--) {
+            int j = rnd.nextInt(i + 1);
+            Integer tmp = keys[i];
+            keys[i] = keys[j];
+            keys[j] = tmp;
+        }
+        return keys;
     }
 
     public static DynamicArray<BenchmarkResult> runHeapBenchmarks() {
@@ -248,6 +336,21 @@ public class EmpiricalBenchmarker {
         } catch (Exception e) {
             System.err.println("Error writing benchmark CSV: " + e.getMessage());
         }
+    }
+
+    /**
+     * Machine specification, reported alongside every experiment so all runs
+     * are provably taken on the same machine.
+     */
+    public static String machineSpec() {
+        Runtime rt = Runtime.getRuntime();
+        return String.format(
+                "OS: %s (%s) | CPU cores: %d | Max heap: %d MB | Java: %s",
+                System.getProperty("os.name"),
+                System.getProperty("os.arch"),
+                rt.availableProcessors(),
+                rt.maxMemory() / (1024 * 1024),
+                System.getProperty("java.version"));
     }
 
     public static void runBenchmarks() {
